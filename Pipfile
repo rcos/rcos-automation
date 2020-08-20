@@ -9,6 +9,7 @@ flask = "*"
 flask-cas = "*"
 requests = "*"
 autopep8 = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

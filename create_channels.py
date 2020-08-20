@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from typing import List, Dict, Optional
 from csv import DictReader
 import requests

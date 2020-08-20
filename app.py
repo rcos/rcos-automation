@@ -1,6 +1,8 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import os
-import flask
-from flask import Flask, request
+from flask import Flask, session, request, render_template, redirect
 from flask_cas import CAS, login_required, logout
 import requests
 
@@ -53,12 +55,12 @@ def get_user_info(access_token):
     return user
 
 
-def add_user_to_server(access_token, user_id):
+def add_user_to_server(access_token: str, user_id: str, nickname: str):
     '''Given a Discord user's id, add them to the RCOS server with their nickname set as their RCS ID and with the 'Verified Student' role.'''
     response = requests.put(f'https://discordapp.com/api/guilds/{RCOS_SERVER_ID}/members/{user_id}',
                             json={
                                 'access_token': access_token,
-                                'nick': str(cas.username).lower(),
+                                'nick': nickname,
                                 'roles': [VERIFIED_ROLE_ID],
                             },
                             headers={
@@ -66,18 +68,27 @@ def add_user_to_server(access_token, user_id):
                             }
                             )
     response.raise_for_status()
+    print(f'Added user {nickname} to server')
     return response
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 @login_required
-def index():
-    return flask.render_template(
-        'index.html',
-        username=cas.username,
-        attributes=cas.attributes,
-        discord_redirect_url=DISCORD_REDIRECT_URL
-    )
+def join():
+    if request.method == 'GET':
+        return render_template(
+            'join.html',
+            rcs_id=cas.username.lower()
+        )
+    elif request.method == 'POST':
+        session['user_info'] = {
+            'first_name': request.form['first_name'].strip(),
+            'last_name': request.form['last_name'].strip(),
+            'graduation_year': int(request.form['graduation_year'])
+        }
+        session.modified = True
+
+        return redirect(DISCORD_REDIRECT_URL)
 
 
 @app.route('/discord/callback')
@@ -87,11 +98,17 @@ def discord_callback():
 
     # Get access token
     tokens = get_tokens(authorization_code)
+    session['tokens'] = tokens
 
     # Get user id
     user = get_user_info(tokens['access_token'])
 
+    # Generate Discord nickname to set as "<First Name> <Last Name Initial> '<Graduation Year 2 Digits> (<RCS ID>)"
+    name = session['user_info']['first_name'] + ' ' + session['user_info']['last_name'][0].upper()
+    grad_year_digits = str(session['user_info']['graduation_year'])[2:]
+    nickname = f'{name} \'{grad_year_digits} ({cas.username.lower()})'
+    
     # Add user to server
-    add_user_to_server(tokens['access_token'], user['id'])
+    add_user_to_server(tokens['access_token'], user['id'], nickname)
 
-    return f'You\'ve been added to the RCOS server as {cas.username}'
+    return f'You\'ve been added to the RCOS server as {nickname}'
