@@ -53,11 +53,11 @@ def get_user_info(access_token):
     return user
 
 
-def add_user_to_server(user_id):
+def add_user_to_server(access_token, user_id):
     '''Given a Discord user's id, add them to the RCOS server with their nickname set as their RCS ID and with the 'Verified Student' role.'''
     response = requests.put(f'https://discordapp.com/api/guilds/{RCOS_SERVER_ID}/members/{user_id}',
                             json={
-                                'access_token': tokens['access_token'],
+                                'access_token': access_token,
                                 'nick': str(cas.username).lower(),
                                 'roles': [VERIFIED_ROLE_ID],
                             },
@@ -92,6 +92,6 @@ def discord_callback():
     user = get_user_info(tokens['access_token'])
 
     # Add user to server
-    add_user_to_server(user['id'])
+    add_user_to_server(tokens['access_token'], user['id'])
 
     return f'You\'ve been added to the RCOS server as {cas.username}'
