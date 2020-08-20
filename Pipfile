@@ -8,8 +8,11 @@ pylint = "*"
 flask = "*"
 flask-cas = "*"
 requests = "*"
+autopep8 = "*"
 
 [dev-packages]
 
 [requires]
 python_version = "3.8"
+
+[pipenv]
