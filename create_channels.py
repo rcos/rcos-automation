@@ -10,9 +10,6 @@ RCOS_SERVER_ID = os.environ.get('RCOS_SERVER_ID')
 DISCORD_BOT_TOKEN = os.environ.get('DISCORD_BOT_TOKEN')
 SMALL_GROUPS_CATEGORY_ID = os.environ.get('SMALL_GROUPS_CATEGORY_ID')
 
-students = dict()
-small_groups = dict()
-
 # https://discord.com/developers/docs/resources/channel#channel-object-channel-types
 TEXT_CHANNEL = 0
 VOICE_CHANNEL = 2
@@ -95,39 +92,42 @@ def delete_channel(channel_id) -> Dict:
     response.raise_for_status()
     return response.json()
 
+if __name__ == '__main__':
+    students = dict()
+    small_groups = dict()
 
-with open('students.csv', 'r') as file:
-    csv_reader = DictReader(file)
-    for row in csv_reader:
-        students[row['rcs_id']] = row
+    with open('students.csv', 'r') as file:
+        csv_reader = DictReader(file)
+        for row in csv_reader:
+            students[row['rcs_id']] = row
 
-        if row['small_group'] not in small_groups:
-            small_groups[row['small_group']] = set()
+            if row['small_group'] not in small_groups:
+                small_groups[row['small_group']] = set()
 
-        small_groups[row['small_group']].add(row['project'])
+            small_groups[row['small_group']].add(row['project'])
 
-# Get all the channels that currently exist.
-all_channels = get_all_channels()
+    # Get all the channels that currently exist.
+    all_channels = get_all_channels()
 
-for small_group in small_groups:
-    # Create category for small group to hold general and project channels
-    small_group_category = add_channel_if_not_exists(
-        all_channels, f'Small Group {small_group}', CATEGORY)
-    all_channels.append(small_group_category)
+    for small_group in small_groups:
+        # Create category for small group to hold general and project channels
+        small_group_category = add_channel_if_not_exists(
+            all_channels, f'Small Group {small_group}', CATEGORY)
+        all_channels.append(small_group_category)
 
-    # Create this small group's general channels
-    small_group_text_channel = add_channel_if_not_exists(
-        all_channels, f'Small Group {small_group}', parent_id=small_group_category['id'])
-    small_group_voice_channel = add_channel_if_not_exists(
-        all_channels, f'Small Group {small_group}', channel_type=VOICE_CHANNEL, parent_id=small_group_category['id'])
-    all_channels.append(small_group_text_channel)
-    all_channels.append(small_group_voice_channel)
+        # Create this small group's general channels
+        small_group_text_channel = add_channel_if_not_exists(
+            all_channels, f'Small Group {small_group}', parent_id=small_group_category['id'])
+        small_group_voice_channel = add_channel_if_not_exists(
+            all_channels, f'Small Group {small_group}', channel_type=VOICE_CHANNEL, parent_id=small_group_category['id'])
+        all_channels.append(small_group_text_channel)
+        all_channels.append(small_group_voice_channel)
 
-    # Create this small group's project channels
-    for project in small_groups[small_group]:
-        project_text_channel = add_channel_if_not_exists(
-            all_channels, project, channel_type=TEXT_CHANNEL, topic=f'🗨️ Discussion channel for {project}', parent_id=small_group_category['id'])
-        project_voice_channel = add_channel_if_not_exists(
-            all_channels, project, channel_type=VOICE_CHANNEL, parent_id=small_group_category['id'])
-        all_channels.append(project_text_channel)
-        all_channels.append(project_voice_channel)
+        # Create this small group's project channels
+        for project in small_groups[small_group]:
+            project_text_channel = add_channel_if_not_exists(
+                all_channels, project, channel_type=TEXT_CHANNEL, topic=f'🗨️ Discussion channel for {project}', parent_id=small_group_category['id'])
+            project_voice_channel = add_channel_if_not_exists(
+                all_channels, project, channel_type=VOICE_CHANNEL, parent_id=small_group_category['id'])
+            all_channels.append(project_text_channel)
+            all_channels.append(project_voice_channel)
