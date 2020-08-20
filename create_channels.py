@@ -1,12 +1,12 @@
+from enum import Enum
+import re
+import os
+import requests
+from csv import DictReader
+from typing import List, Dict, Optional
 from dotenv import load_dotenv
 load_dotenv()
 
-from typing import List, Dict, Optional
-from csv import DictReader
-import requests
-import os
-import re
-from enum import Enum
 
 # Should be stored in .env
 RCOS_SERVER_ID = os.environ.get('RCOS_SERVER_ID')
@@ -40,11 +40,11 @@ def get_all_channels() -> List:
     return response.json()
 
 
-def find_channel(channels, name: str, channel_type: int, parent_id=None) -> Optional[Dict]:
+def find_channel(name: str, channel_type: int, parent_id=None) -> Optional[Dict]:
     '''Find and return a channel with the given criteria or return None'''
     if channel_type == TEXT_CHANNEL:
         name = generate_text_channel_name(name)
-    for channel in channels:
+    for channel in all_channels:
         if channel['type'] == channel_type and channel['name'] == name and channel['parent_id'] == parent_id:
             return channel
     return None
@@ -65,10 +65,10 @@ def add_channel(name: str, channel_type: int = TEXT_CHANNEL, topic: str = None, 
     return response.json()
 
 
-def add_channel_if_not_exists(channels, name: str, channel_type: int = TEXT_CHANNEL, topic: str = None, parent_id=None) -> Dict:
+def add_channel_if_not_exists(name: str, channel_type: int = TEXT_CHANNEL, topic: str = None, parent_id=None) -> Dict:
     # See if channel exists
     channel = find_channel(
-        channels, name, channel_type=channel_type, parent_id=parent_id)
+        name, channel_type=channel_type, parent_id=parent_id)
 
     CHANNEL_TYPES = {
         0: 'Text',
@@ -95,6 +95,10 @@ def delete_channel(channel_id) -> Dict:
     response.raise_for_status()
     return response.json()
 
+
+all_channels = get_all_channels()
+# all_roles = get_all_roles()
+
 if __name__ == '__main__':
     students = dict()
     small_groups = dict()
@@ -109,28 +113,25 @@ if __name__ == '__main__':
 
             small_groups[row['small_group']].add(row['project'])
 
-    # Get all the channels that currently exist.
-    all_channels = get_all_channels()
-
     for small_group in small_groups:
+        title = f'Small Group {small_group}'
+
         # Create category for small group to hold general and project channels
         small_group_category = add_channel_if_not_exists(
-            all_channels, f'Small Group {small_group}', CATEGORY)
-        all_channels.append(small_group_category)
+            title, CATEGORY)
+
+        # Create role
+        # add_role_if_not_exists(title)
 
         # Create this small group's general channels
         small_group_text_channel = add_channel_if_not_exists(
-            all_channels, f'Small Group {small_group}', parent_id=small_group_category['id'])
+            title, parent_id=small_group_category['id'])
         small_group_voice_channel = add_channel_if_not_exists(
-            all_channels, f'Small Group {small_group}', channel_type=VOICE_CHANNEL, parent_id=small_group_category['id'])
-        all_channels.append(small_group_text_channel)
-        all_channels.append(small_group_voice_channel)
+            title, channel_type=VOICE_CHANNEL, parent_id=small_group_category['id'])
 
         # Create this small group's project channels
         for project in small_groups[small_group]:
             project_text_channel = add_channel_if_not_exists(
-                all_channels, project, channel_type=TEXT_CHANNEL, topic=f'🗨️ Discussion channel for {project}', parent_id=small_group_category['id'])
+                project, channel_type=TEXT_CHANNEL, topic=f'🗨️ Discussion channel for {project}', parent_id=small_group_category['id'])
             project_voice_channel = add_channel_if_not_exists(
-                all_channels, project, channel_type=VOICE_CHANNEL, parent_id=small_group_category['id'])
-            all_channels.append(project_text_channel)
-            all_channels.append(project_voice_channel)
+                project, channel_type=VOICE_CHANNEL, parent_id=small_group_category['id'])
