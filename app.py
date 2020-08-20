@@ -111,4 +111,4 @@ def discord_callback():
     # Add user to server
     add_user_to_server(tokens['access_token'], user['id'], nickname)
 
-    return f'You\'ve been added to the RCOS server as {nickname}'
+    return render_template('done.html', nickname=nickname, discord_server_id=RCOS_SERVER_ID)
