@@ -155,7 +155,7 @@ if __name__ == '__main__':
             title, CATEGORY)
 
         # Create role
-        add_role_if_not_exists(title)
+        small_group_role = add_role_if_not_exists(title)
 
         # Create this small group's general channels
         small_group_text_channel = add_channel_if_not_exists(
@@ -163,8 +163,9 @@ if __name__ == '__main__':
         small_group_voice_channel = add_channel_if_not_exists(
             title, channel_type=VOICE_CHANNEL, parent_id=small_group_category['id'])
 
-        # Create this small group's project channels
+        # Create this small group's project channels and roles
         for project in small_groups[small_group]:
+            project_role = add_role_if_not_exists(project)
             project_text_channel = add_channel_if_not_exists(
                 project, channel_type=TEXT_CHANNEL, topic=f'🗨️ Discussion channel for {project}', parent_id=small_group_category['id'])
             project_voice_channel = add_channel_if_not_exists(
