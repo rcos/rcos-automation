@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS users (
+	rcs_id TEXT NOT NULL PRIMARY KEY,
+	discord_user_id TEXT NOT NULL UNIQUE
+)
