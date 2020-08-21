@@ -1,11 +1,11 @@
-from enum import Enum
+from dotenv import load_dotenv
+load_dotenv()
+
 import re
 import os
 import requests
 from csv import DictReader
 from typing import List, Dict, Optional
-from dotenv import load_dotenv
-load_dotenv()
 
 
 # Should be stored in .env
@@ -66,6 +66,7 @@ def add_channel(name: str, channel_type: int = TEXT_CHANNEL, topic: str = None, 
 
 
 def add_channel_if_not_exists(name: str, channel_type: int = TEXT_CHANNEL, topic: str = None, parent_id=None) -> Dict:
+    '''Add a channel if it does not already exist.'''
     # See if channel exists
     channel = find_channel(
         name, channel_type=channel_type, parent_id=parent_id)
