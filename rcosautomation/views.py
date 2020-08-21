@@ -2,6 +2,7 @@ import os
 import sqlite3
 from flask import Flask, g, session, request, render_template, redirect
 from flask_cas import CAS, login_required, logout
+from werkzeug.exceptions import HTTPException
 from .discord import get_tokens, get_user_info, add_user_to_server, RCOS_SERVER_ID, DISCORD_REDIRECT_URL
 from .db import query_db, get_db
 
@@ -28,12 +29,19 @@ def join():
         else:
             return render_template('already_joined.html', rcs_id=cas.username.lower(), discord_server_id=RCOS_SERVER_ID)
     elif request.method == 'POST':
-        # Get fields from form data
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
-        graduation_year = int(request.form['graduation_year'])
-        
-        # TODO: Validate them
+        # Get fields from form data and sanitize
+        try:
+            # Limit to 20 characters so overall Discord nickname doesn't exceed limit of 32 characters
+            first_name = request.form['first_name'].strip()[:20]
+            last_name = request.form['last_name'].strip()
+            graduation_year = int(request.form['graduation_year'].strip())
+        except:
+            # Not all fields given?
+            return render_template(
+                'join.html',
+                rcs_id=cas.username.lower(),
+                error_message='Make sure all fields are filled!'
+            )
 
         print(f'{cas.username} is starting to connect their Discord account with the identity {first_name} {last_name} \'{graduation_year}')
 
@@ -51,6 +59,14 @@ def join():
 @login_required
 def discord_callback():
     authorization_code = request.args.get('code')
+    error = request.args.get('error')
+
+    if error:
+        error_description = request.args.get('error_description')
+        print(
+            f'An error occurred when authenticating with Discord for {cas.username}: ({error}) {error_description}')
+        error_message = 'You refused to connect your Discord account!' if error == 'access_denied' else 'Something went wrong when connecting your Discord account. Please try again later.'
+        raise Exception(error_message)
 
     # Get access token
     tokens = get_tokens(authorization_code)
@@ -108,3 +124,8 @@ def init_db():
         with app.open_resource('schema.sql', mode='r') as f:
             db.cursor().executescript(f.read())
         db.commit()
+
+
+@app.errorhandler(Exception)
+def handle_error(e):
+    return render_template('error.html', error=e), 500
