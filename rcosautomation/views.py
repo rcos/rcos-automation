@@ -17,15 +17,16 @@ app.config['CAS_AFTER_LOGIN'] = '/'
 @login_required
 def join():
     if request.method == 'GET':
-        row = query_db("SELECT discord_user_id FROM users WHERE rcs_id=?", (cas.username.lower(),), True)
-        
+        row = query_db("SELECT discord_user_id FROM users WHERE rcs_id=?",
+                       (cas.username.lower(),), True)
+
         if row == None:
             return render_template(
                 'join.html',
                 rcs_id=cas.username.lower()
             )
         else:
-            return render_template('already_joined.html', rcs_id=cas.username.lower())
+            return render_template('already_joined.html', rcs_id=cas.username.lower(), discord_server_id=RCOS_SERVER_ID)
     elif request.method == 'POST':
         session['user_info'] = {
             'first_name': request.form['first_name'].strip(),
@@ -58,21 +59,36 @@ def discord_callback():
     # Add to database
     try:
         c = get_db().cursor()
-        c.execute('INSERT INTO users VALUES (?, ?)', (cas.username.lower(), user['id']))
+        c.execute('INSERT INTO users VALUES (?, ?)',
+                  (cas.username.lower(), user['id']))
         get_db().commit()
     except sqlite3.IntegrityError:
-        return render_template('already_joined.html', rcs_id=cas.username.lower())
+        return render_template('already_joined.html', rcs_id=cas.username.lower(), discord_server_id=RCOS_SERVER_ID)
 
     # Add user to server
     add_user_to_server(tokens['access_token'], user['id'], nickname)
 
     return render_template('done.html', nickname=nickname, discord_server_id=RCOS_SERVER_ID)
 
+
+@app.route('/discord/reset', methods=['POST'])
+@login_required
+def discord_reset():
+    # Delete DB record
+    c = get_db().cursor()
+    c.execute('DELETE FROM users WHERE rcs_id=?',
+              (cas.username.lower(),))
+    get_db().commit()
+
+    return redirect('/')
+
+
 @app.teardown_appcontext
 def close_connection(exception):
     db = getattr(g, '_database', None)
     if db is not None:
         db.close()
+
 
 def init_db():
     with app.app_context():

@@ -4,5 +4,6 @@
 <p><strong>{{ rcs_id }}@rpi.edu</strong> has already joined the server with a Discord account. You can switch Discord accounts if you want.</p>
 <form method="POST" action="/discord/reset" style="margin-top: 2rem;">
     <button class="rpi-button is-fullwidth">Switch Discord Accounts</button>
+    <a href="https://discord.com/channels/{{ discord_server_id }}" class="rpi-button red is-fullwidth" style="margin-top: 1rem;">Open Discord</a>
 </form>
 {% endblock %}

@@ -32,12 +32,11 @@ def get_tokens(code):
 
 def get_user_info(access_token):
     '''Given an access token, get a Discord user's info including id, username, discriminator, avatar url, etc. Throws an error if invalid request.'''
-    response = requests.get('https://discordapp.com/api/users/@me',
-                            headers={
-                                'Authorization': f'Bearer {access_token}',
-                                'Content-Type': 'application/json'
-                            }
-                            )
+    response = requests.get('https://discordapp.com/api/users/@me', headers={
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+    )
     response.raise_for_status()
     user = response.json()
     return user
