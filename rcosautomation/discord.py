@@ -55,5 +55,4 @@ def add_user_to_server(access_token: str, user_id: str, nickname: str):
                             }
                             )
     response.raise_for_status()
-    print(f'Added user {nickname} to server')
     return response

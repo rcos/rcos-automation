@@ -28,10 +28,19 @@ def join():
         else:
             return render_template('already_joined.html', rcs_id=cas.username.lower(), discord_server_id=RCOS_SERVER_ID)
     elif request.method == 'POST':
+        # Get fields from form data
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        graduation_year = int(request.form['graduation_year'])
+        
+        # TODO: Validate them
+
+        print(f'{cas.username} is starting to connect their Discord account with the identity {first_name} {last_name} \'{graduation_year}')
+
         session['user_info'] = {
-            'first_name': request.form['first_name'].strip(),
-            'last_name': request.form['last_name'].strip(),
-            'graduation_year': int(request.form['graduation_year'])
+            'first_name': first_name,
+            'last_name': last_name,
+            'graduation_year': graduation_year
         }
         session.modified = True
 
@@ -62,11 +71,14 @@ def discord_callback():
         c.execute('INSERT INTO users VALUES (?, ?)',
                   (cas.username.lower(), user['id']))
         get_db().commit()
-    except sqlite3.IntegrityError:
+        print(f'Added DB record for {cas.username}')
+    except sqlite3.IntegrityError as err:
+        print(f'Failed to add DB record for {cas.username}', err)
         return render_template('already_joined.html', rcs_id=cas.username.lower(), discord_server_id=RCOS_SERVER_ID)
 
     # Add user to server
     add_user_to_server(tokens['access_token'], user['id'], nickname)
+    print(f'Added {cas.username} to the server as {nickname}')
 
     return render_template('done.html', nickname=nickname, discord_server_id=RCOS_SERVER_ID)
 
