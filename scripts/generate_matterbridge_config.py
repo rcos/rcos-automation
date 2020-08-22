@@ -20,21 +20,30 @@ from tomlkit import parse, dumps, document, table, comment, aot
 # Constants
 DEFAULT_REMOTE_NICKNAME_FORMAT = '**{NICK}**: '
 
+
 def get_from_env_or_input(key: str, prompt: str, default=None):
     '''Get a value from either an environment variable or user input. Can be given a default value if user enters nothing.'''
 
+    # If there's a default value, show it at the end of the prompt
     if not default == None:
         prompt += f'[default: "{default}"]'
 
+    # Try to get value from env
     value = os.environ.get(key)
     if value == None:
         if default == None:
+            # If no default and not in env, keep prompting until user enters a value
             value = input(prompt)
             while len(value) == 0:
                 value = input(prompt)
         else:
+            # If default is supplied, use user input or default
             value = input(prompt)
+            if len(value) == 0:
+                value = default
+
     return value
+
 
 # The toml document
 doc = document()
@@ -49,15 +58,18 @@ doc['discord'] = table()
 doc['discord'].comment('Discord server connection settings')
 doc['discord']['rcos'] = table()
 
-doc['discord']['rcos']['Token'] = get_from_env_or_input('MATTERBRIDGE_DISCORD_TOKEN', 'Bot Token: ')
+doc['discord']['rcos']['Token'] = get_from_env_or_input(
+    'MATTERBRIDGE_DISCORD_TOKEN', 'Bot Token: ')
 doc['discord']['rcos']['Token'].comment(
     'SECRET bot token found on https://discord.com/developers')
 
-doc['discord']['rcos']['Server'] = get_from_env_or_input('MATTERBRIDGE_DISCORD_SERVER_ID', 'Server: ')
+doc['discord']['rcos']['Server'] = get_from_env_or_input(
+    'MATTERBRIDGE_DISCORD_SERVER_ID', 'Server: ')
 doc['discord']['rcos']['Server'].comment(
     'The ID of the Discord server. Can be found in URL when on Discord or if Developer Mode is turned on and right-clicking the server icon.')
 
-doc['discord']['rcos']['RemoteNickFormat'] = get_from_env_or_input('MATTERBRIDGE_DISCORD_PREFIX', 'Message prefix: ', default=DEFAULT_REMOTE_NICKNAME_FORMAT)
+doc['discord']['rcos']['RemoteNickFormat'] = get_from_env_or_input(
+    'MATTERBRIDGE_DISCORD_PREFIX', 'Message prefix: ', default=DEFAULT_REMOTE_NICKNAME_FORMAT)
 doc['discord']['rcos']['RemoteNickFormat'].comment(
     'The prefix to apply to messages.')
 
@@ -75,13 +87,17 @@ doc['mattermost']['rcos']['Team'] = 'rcos'
 doc['mattermost']['rcos']['Team'].comment(
     'The "team", found as the first part of URL when on Mattermost server')
 
-doc['mattermost']['rcos']['Login'] = get_from_env_or_input('MATTERBRIDGE_MATTERMOST_USERNAME', 'Username: ')
+doc['mattermost']['rcos']['Login'] = get_from_env_or_input(
+    'MATTERBRIDGE_MATTERMOST_USERNAME', 'Username: ')
 doc['mattermost']['rcos']['Login'].comment('The prefix to apply to messages.')
 
-doc['mattermost']['rcos']['Password'] = get_from_env_or_input('MATTERBRIDGE_MATTERMOST_PASSWORD', 'Password: ')
-doc['mattermost']['rcos']['Password'].comment('The password of the Mattermost user to use.')
+doc['mattermost']['rcos']['Password'] = get_from_env_or_input(
+    'MATTERBRIDGE_MATTERMOST_PASSWORD', 'Password: ')
+doc['mattermost']['rcos']['Password'].comment(
+    'The password of the Mattermost user to use.')
 
-doc['mattermost']['rcos']['RemoteNickFormat'] = get_from_env_or_input('MATTERBRIDGE_MATTERMOST_PREFIX', 'Message prefix: ', default=DEFAULT_REMOTE_NICKNAME_FORMAT)
+doc['mattermost']['rcos']['RemoteNickFormat'] = get_from_env_or_input(
+    'MATTERBRIDGE_MATTERMOST_PREFIX', 'Message prefix: ', default=DEFAULT_REMOTE_NICKNAME_FORMAT)
 doc['mattermost']['rcos']['RemoteNickFormat'].comment(
     'The prefix to apply to messages.')
 
@@ -99,7 +115,7 @@ for index, pair in enumerate(channel_pairs):
     gateway = table()
     gateway['name'] = f'gateway-{index}'
     gateway['enable'] = True
-    
+
     gateway['inout'] = aot()
     gateway_discord = table()
     gateway_discord['account'] = 'discord.rcos'
