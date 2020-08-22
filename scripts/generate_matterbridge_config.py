@@ -1,3 +1,14 @@
+'''
+This script is used to generate a valid matterbridge.toml file to let Matterbridge know what
+channels to bridge between Discord and Mattermost. It requires a Discord bot and a dedicated
+Mattermost user account. It outputs a valid toml file that must be pointed to when running matterbridge.
+
+TODO: document env variables and stuff
+
+matterbridge: https://github.com/42wim/matterbridge/wiki
+tomlkit: https://github.com/sdispater/tomlkit
+'''
+
 from tomlkit import parse, dumps, document, table, comment, aot
 
 # Constants
