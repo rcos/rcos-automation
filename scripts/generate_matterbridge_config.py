@@ -3,17 +3,40 @@ This script is used to generate a valid matterbridge.toml file to let Matterbrid
 channels to bridge between Discord and Mattermost. It requires a Discord bot and a dedicated
 Mattermost user account. It outputs a valid toml file that must be pointed to when running matterbridge.
 
-TODO: document env variables and stuff
+Environment Variables (if not set the program will prompt the user for them):
+MATTERBRIDGE_DISCORD_TOKEN: 
+MATTERBRIDGE_DISCORD_SERVER_ID
+MATTERBRIDGE_DISCORD_PREFIX
+MATTERBRIDGE_MATTERMOST_USERNAME
+MATTERBRIDGE_MATTERMOST_PASSWORD
 
 matterbridge: https://github.com/42wim/matterbridge/wiki
 tomlkit: https://github.com/sdispater/tomlkit
 '''
 
+import os
 from tomlkit import parse, dumps, document, table, comment, aot
 
 # Constants
-REMOTE_NICKNAME_FORMAT = '**{NICK}**: '
+DEFAULT_REMOTE_NICKNAME_FORMAT = '**{NICK}**: '
 
+def get_from_env_or_input(key: str, prompt: str, default=None):
+    '''Get a value from either an environment variable or user input. Can be given a default value if user enters nothing.'''
+
+    if not default == None:
+        prompt += f'[default: "{default}"]'
+
+    value = os.environ.get(key)
+    if value == None:
+        if default == None:
+            value = input(prompt)
+            while len(value) == 0:
+                value = input(prompt)
+        else:
+            value = input(prompt)
+    return value
+
+# The toml document
 doc = document()
 
 # General settings
@@ -26,20 +49,20 @@ doc['discord'] = table()
 doc['discord'].comment('Discord server connection settings')
 doc['discord']['rcos'] = table()
 
-doc['discord']['rcos']['Token'] = input('Bot Token: ')
+doc['discord']['rcos']['Token'] = get_from_env_or_input('MATTERBRIDGE_DISCORD_TOKEN', 'Bot Token: ')
 doc['discord']['rcos']['Token'].comment(
     'SECRET bot token found on https://discord.com/developers')
 
-doc['discord']['rcos']['Server'] = input('Server: ')
+doc['discord']['rcos']['Server'] = get_from_env_or_input('MATTERBRIDGE_DISCORD_SERVER_ID', 'Server: ')
 doc['discord']['rcos']['Server'].comment(
     'The ID of the Discord server. Can be found in URL when on Discord or if Developer Mode is turned on and right-clicking the server icon.')
 
-doc['discord']['rcos']['RemoteNickFormat'] = REMOTE_NICKNAME_FORMAT
+doc['discord']['rcos']['RemoteNickFormat'] = get_from_env_or_input('MATTERBRIDGE_DISCORD_PREFIX', 'Message prefix: ', default=DEFAULT_REMOTE_NICKNAME_FORMAT)
 doc['discord']['rcos']['RemoteNickFormat'].comment(
     'The prefix to apply to messages.')
 
 # MATTERMOST
-print('Now Mattermost...')
+print('\n\nNow Mattermost...')
 doc['mattermost'] = table()
 doc['mattermost'].comment('Mattermost server connection settings')
 doc['mattermost']['rcos'] = table()
@@ -52,15 +75,15 @@ doc['mattermost']['rcos']['Team'] = 'rcos'
 doc['mattermost']['rcos']['Team'].comment(
     'The "team", found as the first part of URL when on Mattermost server')
 
-doc['mattermost']['rcos']['RemoteNickFormat'] = REMOTE_NICKNAME_FORMAT
-doc['mattermost']['rcos']['RemoteNickFormat'].comment(
-    'The prefix to apply to messages.')
-
-doc['mattermost']['rcos']['Login'] = input('Mattermost username: ')
+doc['mattermost']['rcos']['Login'] = get_from_env_or_input('MATTERBRIDGE_MATTERMOST_USERNAME', 'Username: ')
 doc['mattermost']['rcos']['Login'].comment('The prefix to apply to messages.')
 
-doc['mattermost']['rcos']['Password'] = input('Mattermost password: ')
+doc['mattermost']['rcos']['Password'] = get_from_env_or_input('MATTERBRIDGE_MATTERMOST_PASSWORD', 'Password: ')
 doc['mattermost']['rcos']['Password'].comment('The password of the Mattermost user to use.')
+
+doc['mattermost']['rcos']['RemoteNickFormat'] = get_from_env_or_input('MATTERBRIDGE_MATTERMOST_PREFIX', 'Message prefix: ', default=DEFAULT_REMOTE_NICKNAME_FORMAT)
+doc['mattermost']['rcos']['RemoteNickFormat'].comment(
+    'The prefix to apply to messages.')
 
 # The channels to pair
 # (Discord channel, Mattermost channel)
@@ -71,6 +94,7 @@ channel_pairs = [
 
 gateways = aot()
 
+# Create the gateways in the document
 for index, pair in enumerate(channel_pairs):
     gateway = table()
     gateway['name'] = f'gateway-{index}'
@@ -92,5 +116,7 @@ for index, pair in enumerate(channel_pairs):
 
 doc.add('gateway', gateways)
 
+# Write the output to a file
 with open('matterbridge.toml', 'w') as outfile:
     outfile.write(dumps(doc))
+    print('Wrote output to matterbridge.toml')
