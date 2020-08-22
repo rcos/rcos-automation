@@ -10,6 +10,7 @@ flask-cas = "*"
 requests = "*"
 autopep8 = "*"
 python-dotenv = "*"
+tomlkit = "*"
 
 [dev-packages]
 
