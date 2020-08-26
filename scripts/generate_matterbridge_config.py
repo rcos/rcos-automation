@@ -89,12 +89,12 @@ doc['mattermost']['rcos']['Team'].comment(
 
 doc['mattermost']['rcos']['Login'] = get_from_env_or_input(
     'MATTERBRIDGE_MATTERMOST_USERNAME', 'Username: ')
-doc['mattermost']['rcos']['Login'].comment('The prefix to apply to messages.')
+doc['mattermost']['rcos']['Login'].comment('Mattermost needs a user account to send/receive messages. This is the account username.')
 
 doc['mattermost']['rcos']['Password'] = get_from_env_or_input(
     'MATTERBRIDGE_MATTERMOST_PASSWORD', 'Password: ')
 doc['mattermost']['rcos']['Password'].comment(
-    'The password of the Mattermost user to use.')
+    'The password of the Mattermost account to use.')
 
 doc['mattermost']['rcos']['RemoteNickFormat'] = get_from_env_or_input(
     'MATTERBRIDGE_MATTERMOST_PREFIX', 'Message prefix: ', default=DEFAULT_REMOTE_NICKNAME_FORMAT)
@@ -103,10 +103,13 @@ doc['mattermost']['rcos']['RemoteNickFormat'].comment(
 
 # The channels to pair
 # (Discord channel, Mattermost channel)
-channel_pairs = [
-    ('testing', 'testing'),
-    ('testing-2', 'testing-2')
-]
+channel_pairs = []
+print("Enter the channels you want to pair on each line and enter an empty line to finish.\nDiscord,Mattermost")
+
+line = input()
+while len(line) > 0:
+    channel_pairs.append(line.split(","))
+    line = input()
 
 gateways = aot()
 
@@ -116,7 +119,7 @@ for index, pair in enumerate(channel_pairs):
     gateway['name'] = f'gateway-{index}'
     gateway['enable'] = True
 
-    gateway['inout'] = aot()
+    gateway['inout'] = aot() # inout means that messages are sent/received both ways
     gateway_discord = table()
     gateway_discord['account'] = 'discord.rcos'
     gateway_discord['channel'] = pair[0]
@@ -135,4 +138,4 @@ doc.add('gateway', gateways)
 # Write the output to a file
 with open('matterbridge.toml', 'w') as outfile:
     outfile.write(dumps(doc))
-    print('Wrote output to matterbridge.toml')
+    print('Wrote output to matterbridge.toml. Now place it where Matterbridge wants it!')
