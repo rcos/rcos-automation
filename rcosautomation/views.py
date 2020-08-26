@@ -128,4 +128,5 @@ def init_db():
 
 @app.errorhandler(Exception)
 def handle_error(e):
+    print(e)
     return render_template('error.html', error=e), 500
