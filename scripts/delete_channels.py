@@ -13,6 +13,14 @@ HEADERS = {
     'Authorization': f'Bot {DISCORD_BOT_TOKEN}',
 }
 
+# Either IDs or names of channels that cannot be deleted
+PROTECTED_CHANNELS = [
+    'unverified',
+    'General',
+    'Leadership',
+    'Support',
+    'Topics'
+]
 
 def get_channel(channel_id: str):
     response = requests.get(

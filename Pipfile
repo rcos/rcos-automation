@@ -11,6 +11,7 @@ requests = "*"
 autopep8 = "*"
 python-dotenv = "*"
 tomlkit = "*"
+gunicorn = "*"
 
 [dev-packages]
 
