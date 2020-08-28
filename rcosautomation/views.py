@@ -124,7 +124,7 @@ def discord_callback():
 def discord_reset():
     # Delete Discord data from user
     mongo.db.users.update_one({'rcs_id': cas.username.lower()}, {
-        '$set': {'discord': None}
+        '$unset': {'discord': True}
     })
 
     return redirect('/')
