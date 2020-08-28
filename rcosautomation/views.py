@@ -4,7 +4,6 @@ from flask import Flask, g, session, request, render_template, redirect
 from flask_cas import CAS, login_required, logout
 from werkzeug.exceptions import HTTPException
 from .discord import get_tokens, get_user_info, add_user_to_server, RCOS_SERVER_ID, DISCORD_REDIRECT_URL
-from .db import query_db, get_db
 
 app = Flask(__name__)
 cas = CAS(app, '/cas')
@@ -83,10 +82,10 @@ def discord_callback():
 
     # Add to database
     try:
-        c = get_db().cursor()
-        c.execute('INSERT INTO users VALUES (?, ?)',
-                  (cas.username.lower(), user['id']))
-        get_db().commit()
+        # c = get_db().cursor()
+        # c.execute('INSERT INTO users VALUES (?, ?)',
+        #           (cas.username.lower(), user['id']))
+        # get_db().commit()
         print(f'Added DB record for {cas.username}')
     except sqlite3.IntegrityError as err:
         print(f'Failed to add DB record for {cas.username}', err)
@@ -103,27 +102,12 @@ def discord_callback():
 @login_required
 def discord_reset():
     # Delete DB record
-    c = get_db().cursor()
-    c.execute('DELETE FROM users WHERE rcs_id=?',
-              (cas.username.lower(),))
-    get_db().commit()
+    # c = get_db().cursor()
+    # c.execute('DELETE FROM users WHERE rcs_id=?',
+    #           (cas.username.lower(),))
+    # get_db().commit()
 
     return redirect('/')
-
-
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.close()
-
-
-def init_db():
-    with app.app_context():
-        db = get_db()
-        with app.open_resource('schema.sql', mode='r') as f:
-            db.cursor().executescript(f.read())
-        db.commit()
 
 
 @app.errorhandler(Exception)
