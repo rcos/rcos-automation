@@ -20,12 +20,16 @@ app.config['CAS_AFTER_LOGIN'] = '/'
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def join():
-
+    
     if request.method == 'GET':
         user = mongo.db.users.find_one({'rcs_id': cas.username.lower()})
         if user == None:
+            user = mongo.db.users.insert_one({ 'rcs_id': cas.username.lower(), 'name': {}, 'graduation_year': 2020 })
+
+        if user['discord'] == None:
             return render_template(
                 'join.html',
+                user=user,
                 rcs_id=cas.username.lower()
             )
         else:
@@ -62,7 +66,7 @@ def join():
 
         # Update or insert
         mongo.db.users.update_one({'rcs_id': cas.username.lower()}, {
-                                  '$set': user_data}, upsert=True)
+                                  '$set': user_data})
 
         return redirect(DISCORD_REDIRECT_URL)
 
@@ -122,13 +126,10 @@ def discord_callback():
 @app.route('/discord/reset', methods=['POST'])
 @login_required
 def discord_reset():
-    # Delete DB record
-    # c = get_db().cursor()
-    # c.execute('DELETE FROM users WHERE rcs_id=?',
-    #           (cas.username.lower(),))
-    # get_db().commit()
-
-    mongo.db.users.delete_one({'rcs_id': cas.username.lower()})
+    # Delete Discord data from user
+    mongo.db.users.update_one({'rcs_id': cas.username.lower()}, {
+        '$set': {'discord': None}
+    })
 
     return redirect('/')
 
@@ -136,4 +137,10 @@ def discord_reset():
 @app.errorhandler(Exception)
 def handle_error(e):
     print(e)
-    return render_template('error.html', error=e), 500
+
+    # Hide error in production
+    error = e
+    if app.config['ENV'] == 'development':
+        error = 'Something went wrong... Please try again later.'
+
+    return render_template('error.html', error=error), 500

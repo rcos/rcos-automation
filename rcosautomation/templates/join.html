@@ -5,14 +5,14 @@
 <form method="POST" style="margin-top: 2rem;">
     <div class="field">
         <label class="rpi-label" for="first-name">First Name</label>
-        <input class="rpi-input" type="text" name="first_name" id="first-name" placeholder="What name do you go by?" maxlength="20" required>
+        <input class="rpi-input" value="{{ user['name']['first'] }}" type="text" name="first_name" id="first-name" placeholder="What name do you go by?" maxlength="20" required>
         <label class="rpi-label" for="last-name">Last Name</label>
-        <input class="rpi-input" type="text" name="last_name" id="last-name" placeholder="We only use the first initial." required>
+        <input class="rpi-input" value="{{ user['name']['last'] }}" type="text" name="last_name" id="last-name" placeholder="We only use the first initial." required>
     </div>
 
     <div class="field">
         <label class="rpi-label" for="grad-year">Graduation Year</label>
-        <input class="rpi-input" type="number" name="graduation_year" id="grad-year" value="2020" min="1900" max="2100" required>
+        <input class="rpi-input" value="{{ user['graduation_year'] }}" type="number" name="graduation_year" id="grad-year" value="2020" min="1900" max="2100" required>
     </div>
 
     <p>
