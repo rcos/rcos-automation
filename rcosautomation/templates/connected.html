@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1 class="rpi-page-title">Connected as {{ user['name']['first'] }}</h1>
+<p>You (<strong>{{ user['rcs_id'] }}@rpi.edu</strong>) have successfully connected your Discord account and have been added to the RCOS server.</p>
+<p>
+    This makes it easier for mentors and coordinators to identify and help members.
+    If you need your name changed at any point, reach out to a Coordinator who can change it for you.
+</p>
+<form method="POST" action="/discord/reset" style="margin-top: 2rem;">
+    <button class="rpi-button is-fullwidth">Switch Discord Accounts</button>
+    <a href="https://discord.com/channels/{{ discord_server_id }}" class="rpi-button red is-fullwidth" style="margin-top: 1rem;">Open Discord</a>
+</form>
+{% endblock %}

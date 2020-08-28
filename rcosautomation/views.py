@@ -1,12 +1,16 @@
 import os
-import sqlite3
 from flask import Flask, g, session, request, render_template, redirect
 from flask_cas import CAS, login_required, logout
 from werkzeug.exceptions import HTTPException
 from .discord import get_tokens, get_user_info, add_user_to_server, RCOS_SERVER_ID, DISCORD_REDIRECT_URL
+from flask_pymongo import PyMongo
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 cas = CAS(app, '/cas')
+app.config['MONGO_URI'] = os.environ.get('MONGO_URI')
+mongo = PyMongo(app)
 
 app.secret_key = os.environ.get('SECRET_KEY')
 app.config['CAS_SERVER'] = 'https://cas-auth.rpi.edu/cas'
@@ -16,17 +20,16 @@ app.config['CAS_AFTER_LOGIN'] = '/'
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def join():
-    if request.method == 'GET':
-        row = query_db("SELECT discord_user_id FROM users WHERE rcs_id=?",
-                       (cas.username.lower(),), True)
 
-        if row == None:
+    if request.method == 'GET':
+        user = mongo.db.users.find_one({'rcs_id': cas.username.lower()})
+        if user == None:
             return render_template(
                 'join.html',
                 rcs_id=cas.username.lower()
             )
         else:
-            return render_template('already_joined.html', rcs_id=cas.username.lower(), discord_server_id=RCOS_SERVER_ID)
+            return redirect('/connected')
     elif request.method == 'POST':
         # Get fields from form data and sanitize
         try:
@@ -51,7 +54,27 @@ def join():
         }
         session.modified = True
 
+        user_data = {
+            'rcs_id': cas.username.lower(),
+            'name': {'first': first_name, 'last': last_name},
+            'graduation_year': graduation_year
+        }
+
+        # Update or insert
+        mongo.db.users.update_one({'rcs_id': cas.username.lower()}, {
+                                  '$set': user_data}, upsert=True)
+
         return redirect(DISCORD_REDIRECT_URL)
+
+
+@app.route('/connected')
+@login_required
+def connected():
+    user = mongo.db.users.find_one({'rcs_id': cas.username.lower()})
+    if user == None:
+        return redirect('/')
+
+    return render_template('connected.html', user=user, discord_server_id=RCOS_SERVER_ID)
 
 
 @app.route('/discord/callback')
@@ -81,21 +104,19 @@ def discord_callback():
     nickname = f'{name} \'{grad_year_digits} ({cas.username.lower()})'
 
     # Add to database
-    try:
-        # c = get_db().cursor()
-        # c.execute('INSERT INTO users VALUES (?, ?)',
-        #           (cas.username.lower(), user['id']))
-        # get_db().commit()
-        print(f'Added DB record for {cas.username}')
-    except sqlite3.IntegrityError as err:
-        print(f'Failed to add DB record for {cas.username}', err)
-        return render_template('already_joined.html', rcs_id=cas.username.lower(), discord_server_id=RCOS_SERVER_ID)
+    mongo.db.users.update_one({'rcs_id': cas.username.lower()}, {'$set': {
+        'discord': {
+            'tokens': tokens,
+            'user_id': user['id']
+        }
+    }})
+    print(f'Added DB record for {cas.username}')
 
     # Add user to server
     add_user_to_server(tokens['access_token'], user['id'], nickname)
     print(f'Added {cas.username} to the server as {nickname}')
 
-    return render_template('done.html', nickname=nickname, discord_server_id=RCOS_SERVER_ID)
+    return redirect('/connected')
 
 
 @app.route('/discord/reset', methods=['POST'])
@@ -106,6 +127,8 @@ def discord_reset():
     # c.execute('DELETE FROM users WHERE rcs_id=?',
     #           (cas.username.lower(),))
     # get_db().commit()
+
+    mongo.db.users.delete_one({'rcs_id': cas.username.lower()})
 
     return redirect('/')
 
