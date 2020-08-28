@@ -7,7 +7,7 @@ DISCORD_BOT_TOKEN = os.environ.get('DISCORD_BOT_TOKEN')
 DISCORD_CLIENT_ID = os.environ.get('DISCORD_CLIENT_ID')
 DISCORD_CLIENT_SECRET = os.environ.get('DISCORD_CLIENT_SECRET')
 DISCORD_REDIRECT_URL = os.environ.get('DISCORD_REDIRECT_URL')
-
+DISCORD_RETURN_URL = os.environ.get('DISCORD_RETURN_URL')
 
 def get_tokens(code):
     '''Given an authorization code, request the access and refresh tokens for a Discord user. Returns the tokens. Throws an error if invalid request.'''
@@ -18,7 +18,7 @@ def get_tokens(code):
                                  'client_secret': DISCORD_CLIENT_SECRET,
                                  'grant_type': 'authorization_code',
                                  'code': code,
-                                 'redirect_uri': 'http://localhost:5000/discord/callback',
+                                 'redirect_uri': DISCORD_RETURN_URL,
                                  'scope': 'identity guilds.join'
                              },
                              headers={
