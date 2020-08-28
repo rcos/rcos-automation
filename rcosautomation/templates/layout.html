@@ -24,6 +24,7 @@
             /* Accent Colors */
             --rpi-accent-gray: #9ea2a2;
             --rpi-accent-lightgray: #d7dbde;
+            --rpi-accent-yellow: #ede86a;
 
             /* Fonts */
             --rpi-sans: 'Source Sans Pro', sans-serif;
@@ -61,6 +62,13 @@
 
             max-width: 500px;
             background-color: var(--rpi-accent-lightgray);
+        }
+
+        .rpi-alert {
+            background-color: var(--rpi-red);
+            padding: 1rem;
+            color: white;
+            margin-bottom: 1rem;
         }
 
         .rpi-page-title {
@@ -199,6 +207,9 @@
         <span class="navbar-item">RCOS Discord Server</span>
     </header>
     <main class="rpi-card">
+        {% if alert %}
+        <div class="rpi-alert">{{ alert }}</div>
+        {% endif %}
         {% block content %}{% endblock %}
     </main>
 </body>

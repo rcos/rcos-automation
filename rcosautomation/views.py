@@ -1,6 +1,6 @@
 import os
 import traceback
-from flask import Flask, g, session, request, render_template, redirect
+from flask import Flask, g, session, request, render_template, redirect, url_for
 from flask_cas import CAS, login_required, logout
 from werkzeug.exceptions import HTTPException
 from .discord import get_tokens, get_user_info, add_user_to_server, RCOS_SERVER_ID, DISCORD_REDIRECT_URL
@@ -21,6 +21,7 @@ app.config['CAS_AFTER_LOGIN'] = '/'
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def join():
+    alert = request.args.get('alert')
     if request.method == 'GET':
         user = mongo.db.users.find_one({'rcs_id': cas.username.lower()})
         if user == None:
@@ -31,7 +32,8 @@ def join():
             return render_template(
                 'join.html',
                 user=user,
-                rcs_id=cas.username.lower()
+                rcs_id=cas.username.lower(),
+                alert=alert
             )
         else:
             return redirect('/connected')
@@ -70,7 +72,7 @@ def join():
 def connected():
     user = mongo.db.users.find_one({'rcs_id': cas.username.lower()})
     if user == None or 'discord' not in user:
-        return redirect('/')
+        return redirect(url_for('join', alert='You are not connected yet!'))
 
     return render_template('connected.html', user=user, discord_server_id=RCOS_SERVER_ID)
 
