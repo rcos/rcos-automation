@@ -2,6 +2,7 @@ import os
 import traceback
 from flask import Flask, g, session, request, render_template, redirect, url_for
 from flask_cas import CAS, login_required, logout
+from flask.logging import create_logger
 from werkzeug.exceptions import HTTPException
 from .discord import get_tokens, get_user_info, add_user_to_server, RCOS_SERVER_ID, DISCORD_REDIRECT_URL
 from flask_pymongo import PyMongo
@@ -12,6 +13,7 @@ app = Flask(__name__)
 cas = CAS(app, '/cas')
 app.config['MONGO_URI'] = os.environ.get('MONGO_URI')
 mongo = PyMongo(app)
+LOGGER = create_logger(app)
 
 app.secret_key = os.environ.get('SECRET_KEY')
 app.config['CAS_SERVER'] = 'https://cas-auth.rpi.edu/cas'
@@ -25,9 +27,12 @@ def join():
     if request.method == 'GET':
         user = mongo.db.users.find_one({'rcs_id': cas.username.lower()})
         if user == None:
-            mongo.db.users.insert_one({ 'rcs_id': cas.username.lower(), 'name': {}, 'graduation_year': 2020 })
+            mongo.db.users.insert_one(
+                {'rcs_id': cas.username.lower(), 'name': {}, 'graduation_year': 2020})
             user = mongo.db.users.find_one({'rcs_id': cas.username.lower()})
-            print('Created ', user)
+            LOGGER.info(
+                f'Created new user document for {user["rcs_id"]} (_id={user["_id"]})')
+
         if 'discord' not in user:
             return render_template(
                 'join.html',
@@ -52,7 +57,8 @@ def join():
                 error_message='Make sure all fields are filled!'
             )
 
-        print(f'{cas.username} is starting to connect their Discord account with the identity {first_name} {last_name} \'{graduation_year}')
+        LOGGER.info(
+            f'{cas.username} is starting to connect their Discord account with the identity {first_name} {last_name} \'{graduation_year}')
 
         user_data = {
             'rcs_id': cas.username.lower(),
@@ -72,6 +78,8 @@ def join():
 def connected():
     user = mongo.db.users.find_one({'rcs_id': cas.username.lower()})
     if user == None or 'discord' not in user:
+        LOGGER.warning(
+            f'{cas.username.lower()} tried to access /connected before being connected')
         return redirect(url_for('join', alert='You are not connected yet!'))
 
     return render_template('connected.html', user=user, discord_server_id=RCOS_SERVER_ID)
@@ -85,9 +93,9 @@ def discord_callback():
 
     if error:
         error_description = request.args.get('error_description')
-        print(
+        LOGGER.warning(
             f'An error occurred when authenticating with Discord for {cas.username}: ({error}) {error_description}')
-        error_message = 'You refused to connect your Discord account!' if error == 'access_denied' else 'Something went wrong when connecting your Discord account. Please try again later.'
+        error_message = 'You refused to connect your Discord account!' if error == 'access_denied' else 'Unknown Discord error'
         raise Exception(error_message)
 
     # Get access token
@@ -96,11 +104,10 @@ def discord_callback():
 
     # Get user id
     discord_user = get_user_info(tokens['access_token'])
-    
+
     user = mongo.db.users.find_one({'rcs_id': cas.username.lower()})
     # Generate Discord nickname to set as "<First Name> <Last Name Initial> '<Graduation Year 2 Digits> (<RCS ID>)"
-    
-    
+
     name = user['name']['first'] + ' ' + user['name']['last'][0].upper()
     grad_year_digits = str(user['graduation_year'])[2:]
     nickname = f'{name} \'{grad_year_digits} ({cas.username.lower()})'
@@ -112,11 +119,12 @@ def discord_callback():
             'user_id': discord_user['id']
         }
     }})
-    print(f'Added DB record for {cas.username}')
+    LOGGER.info(f'Added DB record for {cas.username}')
 
     # Add user to server
     add_user_to_server(tokens['access_token'], discord_user['id'], nickname)
-    print(f'Added {cas.username.lower()} to the server as {nickname}')
+    LOGGER.info(
+        f'Added {cas.username.lower()} to the server as {nickname}')
 
     return redirect('/connected')
 
@@ -129,13 +137,15 @@ def discord_reset():
         '$unset': {'discord': True}
     })
 
+    LOGGER.info(f'Reset Discord data for {cas.username.lower()}')
+
     return redirect('/')
 
 
 @app.errorhandler(Exception)
 def handle_error(e):
-    print(e)
-    print(traceback.format_exc())
+    LOGGER.error(e)
+    LOGGER.debug(traceback.format_exc())
 
     # Hide error in production
     error = e
