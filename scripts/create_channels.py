@@ -11,6 +11,7 @@ load_dotenv()
 RCOS_SERVER_ID = os.environ.get('RCOS_SERVER_ID')
 DISCORD_BOT_TOKEN = os.environ.get('DISCORD_BOT_TOKEN')
 SMALL_GROUPS_CATEGORY_ID = os.environ.get('SMALL_GROUPS_CATEGORY_ID')
+DISCORD_PM_ROLE_ID = os.environ.get('DISCORD_PM_ROLE_ID')
 
 # https://discord.com/developers/docs/resources/channel#channel-object-channel-types
 TEXT_CHANNEL = 0
@@ -22,6 +23,7 @@ HEADERS = {
 }
 
 VIEW_CHANNELS = 0x00000400
+MANAGE_MESSAGES = 0x00002000
 
 
 def generate_text_channel_name(name: str) -> str:
@@ -194,6 +196,11 @@ if __name__ == '__main__':
                     'type': 'role',
                     'allow': VIEW_CHANNELS
                 },
+                {
+                    'id': DISCORD_PM_ROLE_ID,
+                    'type': 'role',
+                    'allow': MANAGE_MESSAGES
+                }
             ]
             project_text_channel = add_channel_if_not_exists(
                 project, channel_type=TEXT_CHANNEL, topic=f'🗨️ Discussion channel for {project}', parent_id=small_group_category['id'], perms=project_perms)
