@@ -95,7 +95,7 @@ def discord_callback():
         error_description = request.args.get('error_description')
         LOGGER.warning(
             f'An error occurred when authenticating with Discord for {cas.username}: ({error}) {error_description}')
-        error_message = f'{cas.username} refused to connect your Discord account!' if error == 'access_denied' else f'Unknown Discord error for {cas.username}'
+        error_message = f'{cas.username} refused to connect their Discord account!' if error == 'access_denied' else f'Unknown Discord error for {cas.username}'
         raise Exception(error_message)
 
     # Get access token
@@ -149,7 +149,7 @@ def handle_error(e):
 
     # Hide error in production
     error = e
-    if app.env == 'produdction':
+    if app.env == 'production':
         error = 'Something went wrong... Please try again later.'
         send_webhook_message('**ERROR**\n```%s```' % traceback.format_exc())
 

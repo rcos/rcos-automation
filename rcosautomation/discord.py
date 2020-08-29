@@ -63,6 +63,7 @@ def add_user_to_server(access_token: str, user_id: str, nickname: str):
 def send_webhook_message(message: str):
     response = requests.post(DISCORD_ERROR_WEBHOOK_URL,
                              json={
+                                 'username': 'Discord+CAS Logs',
                                  'content': message
                              })
     response.raise_for_status()
