@@ -117,19 +117,19 @@ def find_role(name) -> Optional[Dict]:
     return None
 
 
-def add_role(name: str) -> Dict:
+def add_role(name: str, hoist=False) -> Dict:
     '''Add a new role to the server.'''
     response = requests.post(
-        f'https://discordapp.com/api/guilds/{RCOS_SERVER_ID}/roles', json={'name': name}, headers=HEADERS)
+        f'https://discordapp.com/api/guilds/{RCOS_SERVER_ID}/roles', json={'name': name, 'hoist': hoist}, headers=HEADERS)
     response.raise_for_status()
     return response.json()
 
 
-def add_role_if_not_exists(name: str) -> Dict:
+def add_role_if_not_exists(name: str, hoist=False) -> Dict:
     '''Add a new role to the server if it doesn't exist. Returns the created or existing role.'''
     role = find_role(name)
     if role == None:
-        role = add_role(name)
+        role = add_role(name, hoist=hoist)
         all_roles.append(role)
 
     return role
@@ -184,7 +184,7 @@ if __name__ == '__main__':
 
         # Create this small group's project channels and roles
         for project in small_groups[small_group]:
-            project_role = add_role_if_not_exists(project)
+            project_role = add_role_if_not_exists(project, hoist=True)
             project_perms = [
                 {
                     'id': RCOS_SERVER_ID,
