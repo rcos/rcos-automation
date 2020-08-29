@@ -151,6 +151,6 @@ def handle_error(e):
     error = e
     if app.env == 'production':
         error = 'Something went wrong... Please try again later.'
-        send_webhook_message('**ERROR**\n```%s```' % traceback.format_exc())
+        send_webhook_message('**An error occurred for %s**\n```%s```' % (cas.username, traceback.format_exc()))
 
     return render_template('error.html', error=error), 500
