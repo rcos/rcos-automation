@@ -9,18 +9,10 @@ VOICE_CHANNEL = 2
 CATEGORY = 4
 RCOS_SERVER_ID = os.environ.get('RCOS_SERVER_ID')
 DISCORD_BOT_TOKEN = os.environ.get('DISCORD_BOT_TOKEN')
+PROTECTED_CHANNEL_IDS = os.environ.get('DISCORD_PROTECTED_CHANNEL_IDS').split(',')
 HEADERS = {
     'Authorization': f'Bot {DISCORD_BOT_TOKEN}',
 }
-
-# Either IDs or names of channels that cannot be deleted
-PROTECTED_CHANNELS = [
-    'unverified',
-    'General',
-    'Leadership',
-    'Support',
-    'Topics'
-]
 
 def get_channel(channel_id: str):
     response = requests.get(
@@ -38,6 +30,15 @@ def get_category_children(category_id: str):
     return children
 
 def delete_channel(channel_id: str):
+    # Check if this channel or its parent is protected
+    if channel_id in PROTECTED_CHANNEL_IDS:
+        raise Exception('Cannot delete protected channel')
+    
+    channel = get_channel(channel_id)
+
+    if channel['parent_id'] in PROTECTED_CHANNEL_IDS:
+        raise Exception('Cannot delete channel in protected category')
+
     response = requests.delete(
         f'https://discordapp.com/api/channels/{channel_id}', headers=HEADERS)
     response.raise_for_status()
