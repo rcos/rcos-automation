@@ -1,11 +1,10 @@
+from typing import List, Dict, Optional
+from csv import DictReader
+import requests
+import os
+import re
 from dotenv import load_dotenv
 load_dotenv()
-
-import re
-import os
-import requests
-from csv import DictReader
-from typing import List, Dict, Optional
 
 
 # Should be stored in .env
@@ -21,6 +20,8 @@ CATEGORY = 4
 HEADERS = {
     'Authorization': f'Bot {DISCORD_BOT_TOKEN}',
 }
+
+VIEW_CHANNELS = 0x00000400
 
 
 def generate_text_channel_name(name: str) -> str:
@@ -50,14 +51,15 @@ def find_channel(name: str, channel_type: int, parent_id=None) -> Optional[Dict]
     return None
 
 
-def add_channel(name: str, channel_type: int = TEXT_CHANNEL, topic: str = None, parent_id=None) -> Dict:
+def add_channel(name: str, channel_type: int = TEXT_CHANNEL, topic: str = None, parent_id=None, perms=None) -> Dict:
     '''Add a channel or category to the server.'''
     response = requests.post(f'https://discordapp.com/api/guilds/{RCOS_SERVER_ID}/channels',
                              json={
                                  'name': name,
                                  'type': channel_type,
                                  'topic': topic,
-                                 'parent_id': parent_id
+                                 'parent_id': parent_id,
+                                 'permission_overwrites': perms
                              },
                              headers=HEADERS
                              )
@@ -65,7 +67,7 @@ def add_channel(name: str, channel_type: int = TEXT_CHANNEL, topic: str = None, 
     return response.json()
 
 
-def add_channel_if_not_exists(name: str, channel_type: int = TEXT_CHANNEL, topic: str = None, parent_id=None) -> Dict:
+def add_channel_if_not_exists(name: str, channel_type: int = TEXT_CHANNEL, topic: str = None, parent_id=None, perms=None) -> Dict:
     '''Add a channel if it does not already exist.'''
     # See if channel exists
     channel = find_channel(
@@ -79,7 +81,7 @@ def add_channel_if_not_exists(name: str, channel_type: int = TEXT_CHANNEL, topic
 
     if channel == None:
         channel = add_channel(name, channel_type=channel_type,
-                              topic=topic, parent_id=parent_id)
+                              topic=topic, parent_id=parent_id, perms=perms)
         all_channels.append(channel)
         print(
             f'{CHANNEL_TYPES[channel["type"]]} "{channel["name"]}" was added')
@@ -151,12 +153,26 @@ if __name__ == '__main__':
     for small_group in small_groups:
         title = f'Small Group {small_group}'
 
-        # Create category for small group to hold general and project channels
-        small_group_category = add_channel_if_not_exists(
-            title, CATEGORY)
-
         # Create role
         small_group_role = add_role_if_not_exists(title)
+
+        # Create @everyone permission overwrites
+        perms = [
+            {
+                'id': RCOS_SERVER_ID,
+                'type': 'role',
+                'deny': VIEW_CHANNELS
+            },
+            {
+                'id': small_group_role['id'],
+                'type': 'role',
+                'allow': VIEW_CHANNELS
+            }
+        ]
+
+        # Create category for small group to hold general and project channels
+        small_group_category = add_channel_if_not_exists(
+            title, CATEGORY, perms=perms)
 
         # Create this small group's general channels
         small_group_text_channel = add_channel_if_not_exists(
@@ -167,7 +183,19 @@ if __name__ == '__main__':
         # Create this small group's project channels and roles
         for project in small_groups[small_group]:
             project_role = add_role_if_not_exists(project)
+            project_perms = [
+                {
+                    'id': RCOS_SERVER_ID,
+                    'type': 'role',
+                    'deny': VIEW_CHANNELS
+                },
+                {
+                    'id': project_role['id'],
+                    'type': 'role',
+                    'allow': VIEW_CHANNELS
+                },
+            ]
             project_text_channel = add_channel_if_not_exists(
-                project, channel_type=TEXT_CHANNEL, topic=f'🗨️ Discussion channel for {project}', parent_id=small_group_category['id'])
+                project, channel_type=TEXT_CHANNEL, topic=f'🗨️ Discussion channel for {project}', parent_id=small_group_category['id'], perms=project_perms)
             project_voice_channel = add_channel_if_not_exists(
-                project, channel_type=VOICE_CHANNEL, parent_id=small_group_category['id'])
+                project, channel_type=VOICE_CHANNEL, parent_id=small_group_category['id'], perms=project_perms)
