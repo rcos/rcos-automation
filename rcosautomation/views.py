@@ -4,7 +4,7 @@ from flask import Flask, g, session, request, render_template, redirect, url_for
 from flask_cas import CAS, login_required, logout
 from flask.logging import create_logger
 from werkzeug.exceptions import HTTPException
-from .discord import get_tokens, get_user_info, add_user_to_server, RCOS_SERVER_ID, DISCORD_REDIRECT_URL
+from .discord import get_tokens, get_user_info, add_user_to_server, RCOS_SERVER_ID, DISCORD_REDIRECT_URL, send_webhook_message
 from flask_pymongo import PyMongo
 from dotenv import load_dotenv
 load_dotenv()
@@ -95,7 +95,7 @@ def discord_callback():
         error_description = request.args.get('error_description')
         LOGGER.warning(
             f'An error occurred when authenticating with Discord for {cas.username}: ({error}) {error_description}')
-        error_message = 'You refused to connect your Discord account!' if error == 'access_denied' else 'Unknown Discord error'
+        error_message = f'{cas.username} refused to connect your Discord account!' if error == 'access_denied' else f'Unknown Discord error for {cas.username}'
         raise Exception(error_message)
 
     # Get access token
@@ -106,8 +106,8 @@ def discord_callback():
     discord_user = get_user_info(tokens['access_token'])
 
     user = mongo.db.users.find_one({'rcs_id': cas.username.lower()})
-    # Generate Discord nickname to set as "<First Name> <Last Name Initial> '<Graduation Year 2 Digits> (<RCS ID>)"
 
+    # Generate Discord nickname to set as "<First Name> <Last Name Initial> '<Graduation Year 2 Digits> (<RCS ID>)"
     name = user['name']['first'] + ' ' + user['name']['last'][0].upper()
     grad_year_digits = str(user['graduation_year'])[2:]
     nickname = f'{name} \'{grad_year_digits} ({cas.username.lower()})'
@@ -149,7 +149,8 @@ def handle_error(e):
 
     # Hide error in production
     error = e
-    if app.config['ENV'] == 'development':
+    if app.env == 'produdction':
         error = 'Something went wrong... Please try again later.'
+        send_webhook_message('**ERROR**\n```%s```' % traceback.format_exc())
 
     return render_template('error.html', error=error), 500

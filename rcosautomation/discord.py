@@ -8,6 +8,8 @@ DISCORD_CLIENT_ID = os.environ.get('DISCORD_CLIENT_ID')
 DISCORD_CLIENT_SECRET = os.environ.get('DISCORD_CLIENT_SECRET')
 DISCORD_REDIRECT_URL = os.environ.get('DISCORD_REDIRECT_URL')
 DISCORD_RETURN_URL = os.environ.get('DISCORD_RETURN_URL')
+DISCORD_ERROR_WEBHOOK_URL = os.environ.get('DISCORD_ERROR_WEBHOOK_URL')
+
 
 def get_tokens(code):
     '''Given an authorization code, request the access and refresh tokens for a Discord user. Returns the tokens. Throws an error if invalid request.'''
@@ -54,5 +56,14 @@ def add_user_to_server(access_token: str, user_id: str, nickname: str):
                                 'Authorization': f'Bot {DISCORD_BOT_TOKEN}'
                             }
                             )
+    response.raise_for_status()
+    return response
+
+
+def send_webhook_message(message: str):
+    response = requests.post(DISCORD_ERROR_WEBHOOK_URL,
+                             json={
+                                 'content': message
+                             })
     response.raise_for_status()
     return response
