@@ -3,8 +3,7 @@ import traceback
 from flask import Flask, g, session, request, render_template, redirect, url_for
 from flask_cas import CAS, login_required, logout
 from flask.logging import create_logger
-from werkzeug.exceptions import HTTPException
-from .discord import get_tokens, get_user_info, add_user_to_server, RCOS_SERVER_ID, DISCORD_REDIRECT_URL, send_webhook_message
+from .discord import get_tokens, get_user_info, add_user_to_server, add_role_to_user, set_user_nickname, RCOS_SERVER_ID, DISCORD_REDIRECT_URL, VERIFIED_ROLE_ID, send_webhook_message
 from flask_pymongo import PyMongo
 from dotenv import load_dotenv
 load_dotenv()
@@ -121,10 +120,15 @@ def discord_callback():
     }})
     LOGGER.info(f'Added DB record for {cas.username}')
 
-    # Add user to server
+    # Add user to server if not their yet (also adds verified role and nickname if new)
     add_user_to_server(tokens['access_token'], discord_user['id'], nickname)
     LOGGER.info(
         f'Added {cas.username.lower()} to the server as {nickname}')
+
+    # Add verified role
+    add_role_to_user(discord_user['id'], VERIFIED_ROLE_ID)
+    # Set nickname
+    set_user_nickname(discord_user['id'], nickname)
 
     return redirect('/connected')
 
@@ -144,13 +148,14 @@ def discord_reset():
 
 @app.errorhandler(Exception)
 def handle_error(e):
-    LOGGER.error(e)
-    LOGGER.debug(traceback.format_exc())
+    LOGGER.exception(e)
+    # LOGGER.debug(traceback.format_exc())
 
     # Hide error in production
     error = e
-    if app.env == 'production':
+    if app.env == 'production' and not e.name == 'Not Found':
         error = 'Something went wrong... Please try again later.'
-        send_webhook_message('**An error occurred for %s**\n```%s```' % (cas.username, traceback.format_exc()))
+        send_webhook_message('**An error occurred for %s**\n```%s```' %
+                             (cas.username, traceback.format_exc()))
 
     return render_template('error.html', error=error), 500

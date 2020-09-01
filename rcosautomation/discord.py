@@ -1,6 +1,8 @@
 import requests
 import os
 
+API_BASE = 'https://discordapp.com/api'
+
 RCOS_SERVER_ID = os.environ.get('RCOS_SERVER_ID')
 VERIFIED_ROLE_ID = os.environ.get('VERIFIED_ROLE_ID')
 DISCORD_BOT_TOKEN = os.environ.get('DISCORD_BOT_TOKEN')
@@ -14,7 +16,7 @@ DISCORD_ERROR_WEBHOOK_URL = os.environ.get('DISCORD_ERROR_WEBHOOK_URL')
 def get_tokens(code):
     '''Given an authorization code, request the access and refresh tokens for a Discord user. Returns the tokens. Throws an error if invalid request.'''
 
-    response = requests.post(f'https://discord.com/api/oauth2/token',
+    response = requests.post(f'{API_BASE}/oauth2/token',
                              data={
                                  'client_id': DISCORD_CLIENT_ID,
                                  'client_secret': DISCORD_CLIENT_SECRET,
@@ -34,7 +36,7 @@ def get_tokens(code):
 
 def get_user_info(access_token):
     '''Given an access token, get a Discord user's info including id, username, discriminator, avatar url, etc. Throws an error if invalid request.'''
-    response = requests.get('https://discordapp.com/api/users/@me', headers={
+    response = requests.get(f'{API_BASE}/users/@me', headers={
         'Authorization': f'Bearer {access_token}',
         'Content-Type': 'application/json'
     }
@@ -46,7 +48,7 @@ def get_user_info(access_token):
 
 def add_user_to_server(access_token: str, user_id: str, nickname: str):
     '''Given a Discord user's id, add them to the RCOS server with their nickname set as their RCS ID and with the 'Verified Student' role.'''
-    response = requests.put(f'https://discordapp.com/api/guilds/{RCOS_SERVER_ID}/members/{user_id}',
+    response = requests.put(f'{API_BASE}/guilds/{RCOS_SERVER_ID}/members/{user_id}',
                             json={
                                 'access_token': access_token,
                                 'nick': nickname,
@@ -56,6 +58,28 @@ def add_user_to_server(access_token: str, user_id: str, nickname: str):
                                 'Authorization': f'Bot {DISCORD_BOT_TOKEN}'
                             }
                             )
+    response.raise_for_status()
+    return response
+
+
+def set_user_nickname(user_id: str, nickname: str):
+    response = requests.patch(f'{API_BASE}/guilds/{RCOS_SERVER_ID}/members/{user_id}',
+                              json={
+                                  'nick': nickname
+                              },
+                              headers={
+                                  'Authorization': f'Bot {DISCORD_BOT_TOKEN}'
+                              }
+                              )
+    response.raise_for_status()
+    return response
+
+
+def add_role_to_user(user_id: str, role_id: str):
+    response = requests.put(
+        f'{API_BASE}/guilds/{RCOS_SERVER_ID}/members/{user_id}/roles/{role_id}', headers={
+            'Authorization': f'Bot {DISCORD_BOT_TOKEN}'
+        })
     response.raise_for_status()
     return response
 
