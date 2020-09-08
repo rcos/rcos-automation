@@ -60,7 +60,7 @@ def add_user_to_server(access_token: str, user_id: str, nickname: str):
     response.raise_for_status()
     return response
 
-
+  
 def kick_user_from_server(user_id: str):
     '''Given a Discord user's id, kick them from the RCOS server.'''
     response = requests.delete(
@@ -69,7 +69,7 @@ def kick_user_from_server(user_id: str):
     return response
 
 
-def set_user_nickname(user_id: str, nickname: str):
+def set_member_nickname(user_id: str, nickname: str):
     '''Given a Discord user's id, set their nickname on the server.'''
     response = requests.patch(f'{API_BASE}/guilds/{RCOS_SERVER_ID}/members/{user_id}',
                               json={
@@ -83,8 +83,8 @@ def set_user_nickname(user_id: str, nickname: str):
     return response
 
 
-def add_role_to_user(user_id: str, role_id: str):
-    '''Add the role (specified by ID) to a user (specified by ID).'''
+def add_role_to_member(user_id: str, role_id: str):
+    '''Add a role (identified by its id) to a member.'''
     response = requests.put(
         f'{API_BASE}/guilds/{RCOS_SERVER_ID}/members/{user_id}/roles/{role_id}', headers={
             'Authorization': f'Bot {DISCORD_BOT_TOKEN}'

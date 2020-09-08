@@ -1,29 +1,8 @@
+from .constants import *
 from typing import List, Dict, Optional
 from csv import DictReader
 import requests
-import os
 import re
-from dotenv import load_dotenv
-load_dotenv()
-
-
-# Should be stored in .env
-RCOS_SERVER_ID = os.environ.get('RCOS_SERVER_ID')
-DISCORD_BOT_TOKEN = os.environ.get('DISCORD_BOT_TOKEN')
-SMALL_GROUPS_CATEGORY_ID = os.environ.get('SMALL_GROUPS_CATEGORY_ID')
-DISCORD_PM_ROLE_ID = os.environ.get('DISCORD_PM_ROLE_ID')
-
-# https://discord.com/developers/docs/resources/channel#channel-object-channel-types
-TEXT_CHANNEL = 0
-VOICE_CHANNEL = 2
-CATEGORY = 4
-
-HEADERS = {
-    'Authorization': f'Bot {DISCORD_BOT_TOKEN}',
-}
-
-VIEW_CHANNELS = 0x00000400
-MANAGE_MESSAGES = 0x00002000
 
 
 def generate_text_channel_name(name: str) -> str:
@@ -74,12 +53,6 @@ def add_channel_if_not_exists(name: str, channel_type: int = TEXT_CHANNEL, topic
     # See if channel exists
     channel = find_channel(
         name, channel_type=channel_type, parent_id=parent_id)
-
-    CHANNEL_TYPES = {
-        0: 'Text',
-        2: 'Voice',
-        4: 'Category'
-    }
 
     if channel == None:
         channel = add_channel(name, channel_type=channel_type,
@@ -138,7 +111,8 @@ def add_role_if_not_exists(name: str, hoist=False) -> Dict:
 all_channels = get_all_channels()
 all_roles = get_all_roles()
 
-if __name__ == '__main__':
+
+def run():
     students = dict()
     small_groups = dict()
 
