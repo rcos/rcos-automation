@@ -3,7 +3,7 @@ import traceback
 from flask import Flask, g, session, request, render_template, redirect, url_for
 from flask_cas import CAS, login_required, logout
 from flask.logging import create_logger
-from .discord import get_tokens, get_user_info, add_user_to_server, add_role_to_member, set_member_nickname, RCOS_SERVER_ID, DISCORD_REDIRECT_URL, VERIFIED_ROLE_ID, send_webhook_message
+from .discord import get_tokens, get_user_info, add_user_to_server, kick_user_from_server, add_role_to_member, set_member_nickname, RCOS_SERVER_ID, DISCORD_REDIRECT_URL, VERIFIED_ROLE_ID, send_webhook_message
 from flask_pymongo import PyMongo
 from dotenv import load_dotenv
 load_dotenv()
@@ -136,12 +136,18 @@ def discord_callback():
 @app.route('/discord/reset', methods=['POST'])
 @login_required
 def discord_reset():
+    user = mongo.db.users.find_one({'rcs_id': cas.username.lower()})
+
+    # Kick them from the server
+    kick_user_from_server(user['discord']['user_id'])
+
     # Delete Discord data from user
     mongo.db.users.update_one({'rcs_id': cas.username.lower()}, {
         '$unset': {'discord': True}
     })
 
-    LOGGER.info(f'Reset Discord data for {cas.username.lower()}')
+    LOGGER.info(
+        f'Reset Discord data and kicked old user for {cas.username.lower()}')
 
     return redirect('/')
 

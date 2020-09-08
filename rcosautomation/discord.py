@@ -60,9 +60,17 @@ def add_user_to_server(access_token: str, user_id: str, nickname: str):
     response.raise_for_status()
     return response
 
+  
+def kick_user_from_server(user_id: str):
+    '''Given a Discord user's id, kick them from the RCOS server.'''
+    response = requests.delete(
+        f'{API_BASE}/guids/{RCOS_SERVER_ID}/members/{user_id}')
+    response.raise_for_status()
+    return response
+
 
 def set_member_nickname(user_id: str, nickname: str):
-    '''Set the nickname of a user.'''
+    '''Given a Discord user's id, set their nickname on the server.'''
     response = requests.patch(f'{API_BASE}/guilds/{RCOS_SERVER_ID}/members/{user_id}',
                               json={
                                   'nick': nickname
@@ -86,7 +94,7 @@ def add_role_to_member(user_id: str, role_id: str):
 
 
 def send_webhook_message(message: str):
-    '''Send message to webhook channel.'''
+    '''Send webhook message to the specified webhook URL.'''
     response = requests.post(DISCORD_ERROR_WEBHOOK_URL,
                              json={
                                  'username': 'Discord+CAS Logs',
