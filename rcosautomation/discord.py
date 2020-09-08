@@ -15,7 +15,6 @@ DISCORD_ERROR_WEBHOOK_URL = os.environ.get('DISCORD_ERROR_WEBHOOK_URL')
 
 def get_tokens(code):
     '''Given an authorization code, request the access and refresh tokens for a Discord user. Returns the tokens. Throws an error if invalid request.'''
-
     response = requests.post(f'{API_BASE}/oauth2/token',
                              data={
                                  'client_id': DISCORD_CLIENT_ID,
@@ -62,7 +61,8 @@ def add_user_to_server(access_token: str, user_id: str, nickname: str):
     return response
 
 
-def set_user_nickname(user_id: str, nickname: str):
+def set_member_nickname(user_id: str, nickname: str):
+    '''Set the nickname of a user.'''
     response = requests.patch(f'{API_BASE}/guilds/{RCOS_SERVER_ID}/members/{user_id}',
                               json={
                                   'nick': nickname
@@ -75,7 +75,8 @@ def set_user_nickname(user_id: str, nickname: str):
     return response
 
 
-def add_role_to_user(user_id: str, role_id: str):
+def add_role_to_member(user_id: str, role_id: str):
+    '''Add a role (identified by its id) to a member.'''
     response = requests.put(
         f'{API_BASE}/guilds/{RCOS_SERVER_ID}/members/{user_id}/roles/{role_id}', headers={
             'Authorization': f'Bot {DISCORD_BOT_TOKEN}'
@@ -85,6 +86,7 @@ def add_role_to_user(user_id: str, role_id: str):
 
 
 def send_webhook_message(message: str):
+    '''Send message to webhook channel.'''
     response = requests.post(DISCORD_ERROR_WEBHOOK_URL,
                              json={
                                  'username': 'Discord+CAS Logs',

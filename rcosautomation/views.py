@@ -3,7 +3,7 @@ import traceback
 from flask import Flask, g, session, request, render_template, redirect, url_for
 from flask_cas import CAS, login_required, logout
 from flask.logging import create_logger
-from .discord import get_tokens, get_user_info, add_user_to_server, add_role_to_user, set_user_nickname, RCOS_SERVER_ID, DISCORD_REDIRECT_URL, VERIFIED_ROLE_ID, send_webhook_message
+from .discord import get_tokens, get_user_info, add_user_to_server, add_role_to_member, set_member_nickname, RCOS_SERVER_ID, DISCORD_REDIRECT_URL, VERIFIED_ROLE_ID, send_webhook_message
 from flask_pymongo import PyMongo
 from dotenv import load_dotenv
 load_dotenv()
@@ -126,9 +126,9 @@ def discord_callback():
         f'Added {cas.username.lower()} to the server as {nickname}')
 
     # Add verified role
-    add_role_to_user(discord_user['id'], VERIFIED_ROLE_ID)
+    add_role_to_member(discord_user['id'], VERIFIED_ROLE_ID)
     # Set nickname
-    set_user_nickname(discord_user['id'], nickname)
+    set_member_nickname(discord_user['id'], nickname)
 
     return redirect('/connected')
 
