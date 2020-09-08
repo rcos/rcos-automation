@@ -33,3 +33,10 @@ Users will be automatically assigned their small group and project roles. This m
 Small group categories will only be visible to their own members. Coordinators and faculty will be able to see all channels and categories at all times, though they can collapse categories to hide clutter.
 
 This means the leadership will get a overall view of server activity while members only have access to what they need to prevent distraction.
+
+
+## Scripts
+To run a script, `$ python run_script.pt <script name>`
+- `create_channels`
+- `delete_channels`
+- `generate_matterbridge_config`
