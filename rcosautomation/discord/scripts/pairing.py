@@ -1,16 +1,16 @@
 # from .constants import *
-from rcosautomation.discord.constants import MATTERMOST_USERNAME, MATTERMOST_PASSWORD
+from rcosautomation.discord.constants import MATTERMOST_USERNAME, MATTERMOST_PASSWORD, VOICE_CHANNEL
 from rcosautomation.discord.channels import add_channel_if_not_exists
 import requests
 
 
 from mattermostdriver import Driver
 
-mattermost = Driver({
-    'url': '54.197.25.170',
-    'login_id': MATTERMOST_USERNAME,
-    'password': MATTERMOST_PASSWORD
-})
+# mattermost = Driver({
+#     'url': '54.197.25.170',
+#     'login_id': MATTERMOST_USERNAME,
+#     'password': MATTERMOST_PASSWORD
+# })
 
 # mattermost.login()
 
@@ -20,7 +20,6 @@ project_pairing_category_id = '748650123092820140'
 # You can copy-paste project names here on each line and it will split and trim them
 project_text = '''The Hotbox
 Padlock News
-Tempoture
 Sage
 Submitty
 Insomnia Dialogue System
@@ -49,13 +48,13 @@ def run():
     print(
         f'Creating project pairing text-channels for {len(projects)} projects')
 
-    mattermost.channels.create_channel(options={
-        'team_id': 'rcos',
-        'name': 'pairing-test-project',
-        'display_name': '(pairing) Test Project',
-        'type': 0
-    })
+    # mattermost.channels.create_channel(options={
+    #     'team_id': 'rcos',
+    #     'name': 'pairing-test-project',
+    #     'display_name': '(pairing) Test Project',
+    #     'type': 0
+    # })
 
-    # for project in projects:
-    #     add_channel_if_not_exists(
-    #         project, topic=f'Discuss **{project}** with its Project Lead!', parent_id=project_pairing_category_id)
+    for project in projects:
+        add_channel_if_not_exists(
+            project, channel_type=VOICE_CHANNEL, parent_id=project_pairing_category_id)
