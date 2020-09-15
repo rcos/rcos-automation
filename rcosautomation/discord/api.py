@@ -3,9 +3,6 @@ import re
 from typing import List, Dict, Optional
 from .constants import RCOS_SERVER_ID, HEADERS, TEXT_CHANNEL, VOICE_CHANNEL, CHANNEL_TYPES
 
-all_channels = get_all_channels()
-all_roles = get_all_roles()
-
 
 def generate_text_channel_name(name: str) -> str:
     '''Given a name, convert it into what its Discord text channel title would be.'''
@@ -108,3 +105,7 @@ def add_role_if_not_exists(name: str, hoist=False) -> Dict:
         all_roles.append(role)
 
     return role
+
+
+all_channels = get_all_channels()
+all_roles = get_all_roles()

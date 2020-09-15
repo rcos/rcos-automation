@@ -1,1 +1,1 @@
-web: gunicorn rcosautomation:app
+web: gunicorn rcosautomation.webapp:app

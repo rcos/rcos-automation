@@ -1,4 +1,3 @@
-from ..discord.api import DISCORD_API
 import os
 import traceback
 from flask import Flask, g, session, request, render_template, redirect, url_for
