@@ -4,11 +4,11 @@ channels to bridge between Discord and Mattermost. It requires a Discord bot and
 Mattermost user account. It outputs a valid toml file that must be pointed to when running matterbridge.
 
 Environment Variables (if not set the program will prompt the user for them):
-MATTERBRIDGE_DISCORD_TOKEN: 
-MATTERBRIDGE_DISCORD_SERVER_ID
+DISCORD_BOT_TOKEN: 
+RCOS_SERVER_ID
 MATTERBRIDGE_DISCORD_PREFIX
-MATTERBRIDGE_MATTERMOST_USERNAME
-MATTERBRIDGE_MATTERMOST_PASSWORD
+MATTERMOST_USERNAME
+MATTERMOST_PASSWORD
 
 matterbridge: https://github.com/42wim/matterbridge/wiki
 tomlkit: https://github.com/sdispater/tomlkit
@@ -61,12 +61,12 @@ def run():
     doc['discord']['rcos'] = table()
 
     doc['discord']['rcos']['Token'] = get_from_env_or_input(
-        'MATTERBRIDGE_DISCORD_TOKEN', 'Bot Token: ')
+        'DISCORD_BOT_TOKEN', 'Bot Token: ')
     doc['discord']['rcos']['Token'].comment(
         'SECRET bot token found on https://discord.com/developers')
 
     doc['discord']['rcos']['Server'] = get_from_env_or_input(
-        'MATTERBRIDGE_DISCORD_SERVER_ID', 'Server: ')
+        'RCOS_SERVER_ID', 'Server: ')
     doc['discord']['rcos']['Server'].comment(
         'The ID of the Discord server. Can be found in URL when on Discord or if Developer Mode is turned on and right-clicking the server icon.')
 
@@ -90,12 +90,12 @@ def run():
         'The "team", found as the first part of URL when on Mattermost server')
 
     doc['mattermost']['rcos']['Login'] = get_from_env_or_input(
-        'MATTERBRIDGE_MATTERMOST_USERNAME', 'Username: ')
+        'MATTERMOST_USERNAME', 'Username: ')
     doc['mattermost']['rcos']['Login'].comment(
         'Mattermost needs a user account to send/receive messages. This is the account username.')
 
     doc['mattermost']['rcos']['Password'] = get_from_env_or_input(
-        'MATTERBRIDGE_MATTERMOST_PASSWORD', 'Password: ')
+        'MATTERMOST_PASSWORD', 'Password: ')
     doc['mattermost']['rcos']['Password'].comment(
         'The password of the Mattermost account to use.')
 
@@ -117,9 +117,9 @@ def run():
     gateways = aot()
 
     # Create the gateways in the document
-    for index, pair in enumerate(channel_pairs):
+    for pair in enumerate(channel_pairs):
         gateway = table()
-        gateway['name'] = f'gateway-{index}'
+        gateway['name'] = f'gateway-{pair[1]}'
         gateway['enable'] = True
 
         # inout means that messages are sent/received both ways
