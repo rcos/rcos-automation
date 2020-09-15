@@ -2,6 +2,18 @@
 from .create_channels import add_channel_if_not_exists
 import requests
 
+from .constants import MATTERMOST_USERNAME, MATTERMOST_PASSWORD
+
+from mattermostdriver import Driver
+
+mattermost = Driver({
+    'url': '54.197.25.170',
+    'login_id': MATTERMOST_USERNAME,
+    'password': MATTERMOST_PASSWORD
+})
+
+# mattermost.login()
+
 # The ID of the Project Pairing category
 project_pairing_category_id = '748650123092820140'
 
@@ -37,6 +49,13 @@ def run():
     print(
         f'Creating project pairing text-channels for {len(projects)} projects')
 
-    for project in projects:
-        add_channel_if_not_exists(
-            project, topic=f'Discuss **{project}** with its Project Lead!', parent_id=project_pairing_category_id)
+    mattermost.channels.create_channel(options={
+        'team_id': 'rcos',
+        'name': 'pairing-test-project',
+        'display_name': '(pairing) Test Project',
+        'type': 0
+    })
+
+    # for project in projects:
+    #     add_channel_if_not_exists(
+    #         project, topic=f'Discuss **{project}** with its Project Lead!', parent_id=project_pairing_category_id)
