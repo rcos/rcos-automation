@@ -3,10 +3,16 @@ import traceback
 from flask import Flask, g, session, request, render_template, redirect, url_for
 from flask_cas import CAS, login_required, logout
 from flask.logging import create_logger
-from .discord import get_tokens, get_user_info, add_user_to_server, kick_user_from_server, add_role_to_member, set_member_nickname, RCOS_SERVER_ID, DISCORD_REDIRECT_URL, VERIFIED_ROLE_ID, send_webhook_message
+
+from ..discord.users import get_tokens, get_user_info, add_user_to_server, kick_user_from_server, add_role_to_member, set_member_nickname
+from ..discord.webhooks import send_webhook_message
+from ..discord.constants import DISCORD_REDIRECT_URL, RCOS_SERVER_ID, VERIFIED_ROLE_ID
+
+# from .web_discord import set_member_nickname, RCOS_SERVER_ID, DISCORD_REDIRECT_URL, VERIFIED_ROLE_ID, send_webhook_message
 from flask_pymongo import PyMongo
 from dotenv import load_dotenv
 load_dotenv()
+
 
 app = Flask(__name__)
 cas = CAS(app, '/cas')
@@ -81,7 +87,9 @@ def connected():
             f'{cas.username.lower()} tried to access /connected before being connected')
         return redirect(url_for('join', alert='You are not connected yet!'))
 
-    return render_template('connected.html', user=user, discord_server_id=RCOS_SERVER_ID)
+    discord_user = get_user_info(user['discord']['tokens']['access_token'])
+
+    return render_template('connected.html', user=user, discord_user=discord_user, discord_server_id=RCOS_SERVER_ID)
 
 
 @app.route('/discord/callback')

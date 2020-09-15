@@ -4,3 +4,4 @@ __pycache__/
 *.db
 matterbridge.toml
 pairs.txt
+*.egg-info

@@ -1,16 +1,5 @@
 import requests
-import os
-
-API_BASE = 'https://discordapp.com/api'
-
-RCOS_SERVER_ID = os.environ.get('RCOS_SERVER_ID')
-VERIFIED_ROLE_ID = os.environ.get('VERIFIED_ROLE_ID')
-DISCORD_BOT_TOKEN = os.environ.get('DISCORD_BOT_TOKEN')
-DISCORD_CLIENT_ID = os.environ.get('DISCORD_CLIENT_ID')
-DISCORD_CLIENT_SECRET = os.environ.get('DISCORD_CLIENT_SECRET')
-DISCORD_REDIRECT_URL = os.environ.get('DISCORD_REDIRECT_URL')
-DISCORD_RETURN_URL = os.environ.get('DISCORD_RETURN_URL')
-DISCORD_ERROR_WEBHOOK_URL = os.environ.get('DISCORD_ERROR_WEBHOOK_URL')
+from .constants import API_BASE, RCOS_SERVER_ID, VERIFIED_ROLE_ID, DISCORD_BOT_TOKEN, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_RETURN_URL, HEADERS
 
 
 def get_tokens(code):
@@ -47,24 +36,25 @@ def get_user_info(access_token):
 
 def add_user_to_server(access_token: str, user_id: str, nickname: str):
     '''Given a Discord user's id, add them to the RCOS server with their nickname set as their RCS ID and with the 'Verified Student' role.'''
+    print('Access Token', access_token)
+    print('User ID', user_id)
+    print('Discord Bot Token', DISCORD_BOT_TOKEN)
     response = requests.put(f'{API_BASE}/guilds/{RCOS_SERVER_ID}/members/{user_id}',
                             json={
                                 'access_token': access_token,
                                 'nick': nickname,
                                 'roles': [VERIFIED_ROLE_ID],
                             },
-                            headers={
-                                'Authorization': f'Bot {DISCORD_BOT_TOKEN}'
-                            }
+                            headers=HEADERS
                             )
     response.raise_for_status()
     return response
 
-  
+
 def kick_user_from_server(user_id: str):
     '''Given a Discord user's id, kick them from the RCOS server.'''
     response = requests.delete(
-        f'{API_BASE}/guids/{RCOS_SERVER_ID}/members/{user_id}')
+        f'{API_BASE}/guilds/{RCOS_SERVER_ID}/members/{user_id}', headers=HEADERS)
     response.raise_for_status()
     return response
 
@@ -75,9 +65,7 @@ def set_member_nickname(user_id: str, nickname: str):
                               json={
                                   'nick': nickname
                               },
-                              headers={
-                                  'Authorization': f'Bot {DISCORD_BOT_TOKEN}'
-                              }
+                              headers=HEADERS
                               )
     response.raise_for_status()
     return response
@@ -86,19 +74,6 @@ def set_member_nickname(user_id: str, nickname: str):
 def add_role_to_member(user_id: str, role_id: str):
     '''Add a role (identified by its id) to a member.'''
     response = requests.put(
-        f'{API_BASE}/guilds/{RCOS_SERVER_ID}/members/{user_id}/roles/{role_id}', headers={
-            'Authorization': f'Bot {DISCORD_BOT_TOKEN}'
-        })
-    response.raise_for_status()
-    return response
-
-
-def send_webhook_message(message: str):
-    '''Send webhook message to the specified webhook URL.'''
-    response = requests.post(DISCORD_ERROR_WEBHOOK_URL,
-                             json={
-                                 'username': 'Discord+CAS Logs',
-                                 'content': message
-                             })
+        f'{API_BASE}/guilds/{RCOS_SERVER_ID}/members/{user_id}/roles/{role_id}', headers=HEADERS)
     response.raise_for_status()
     return response
