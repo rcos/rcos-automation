@@ -1,5 +1,5 @@
 import sys
-from discord import create_channels, delete_channels, generate_matterbridge_config, pairing
+from discord import create_channels, delete_channels, matterbridge, pairing
 
 # Ensure script name was given
 if len(sys.argv) == 1:
@@ -11,8 +11,8 @@ if script == 'create_channels':
     create_channels.run()
 elif script == 'delete_channels':
     delete_channels.run()
-elif script == 'generate_matterbridge_config':
-    generate_matterbridge_config.run()
+elif script == 'matterbridge':
+    matterbridge.run()
 elif script == 'pairing':
     pairing.run()
 else:
