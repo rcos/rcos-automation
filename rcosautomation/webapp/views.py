@@ -1,12 +1,14 @@
+from ..discord.api import DISCORD_API
 import os
 import traceback
 from flask import Flask, g, session, request, render_template, redirect, url_for
 from flask_cas import CAS, login_required, logout
 from flask.logging import create_logger
-from .discord import get_tokens, get_user_info, add_user_to_server, kick_user_from_server, add_role_to_member, set_member_nickname, RCOS_SERVER_ID, DISCORD_REDIRECT_URL, VERIFIED_ROLE_ID, send_webhook_message
+from .web_discord import get_tokens, get_user_info, add_user_to_server, kick_user_from_server, add_role_to_member, set_member_nickname, RCOS_SERVER_ID, DISCORD_REDIRECT_URL, VERIFIED_ROLE_ID, send_webhook_message
 from flask_pymongo import PyMongo
 from dotenv import load_dotenv
 load_dotenv()
+
 
 app = Flask(__name__)
 cas = CAS(app, '/cas')

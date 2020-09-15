@@ -1,5 +1,5 @@
 import sys
-from discord import create_channels, delete_channels, matterbridge, pairing
+from rcosautomation.discord import create_channels, delete_channels, matterbridge, pairing
 
 # Ensure script name was given
 if len(sys.argv) == 1:
