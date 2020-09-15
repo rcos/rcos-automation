@@ -1,7 +1,8 @@
 import requests
 import re
 from typing import List, Dict, Optional
-from .constants import RCOS_SERVER_ID, HEADERS, TEXT_CHANNEL, VOICE_CHANNEL, CHANNEL_TYPES
+
+from .constants import API_BASE, RCOS_SERVER_ID, HEADERS, TEXT_CHANNEL, VOICE_CHANNEL, CATEGORY, CHANNEL_TYPES
 
 
 def generate_text_channel_name(name: str) -> str:
@@ -16,14 +17,14 @@ def generate_text_channel_name(name: str) -> str:
 def get_all_channels() -> List:
     '''Get all channels on the server.'''
     response = requests.get(
-        f'https://discordapp.com/api/guilds/{RCOS_SERVER_ID}/channels', headers=HEADERS)
+        f'{API_BASE}/guilds/{RCOS_SERVER_ID}/channels', headers=HEADERS)
     response.raise_for_status()
     return response.json()
 
 
 def add_channel(name: str, channel_type: int = TEXT_CHANNEL, topic: str = None, parent_id=None, perms=None) -> Dict:
     '''Add a channel or category to the server.'''
-    response = requests.post(f'https://discordapp.com/api/guilds/{RCOS_SERVER_ID}/channels',
+    response = requests.post(f'{API_BASE}/guilds/{RCOS_SERVER_ID}/channels',
                              json={
                                  'name': name,
                                  'type': channel_type,
@@ -66,46 +67,11 @@ def add_channel_if_not_exists(name: str, channel_type: int = TEXT_CHANNEL, topic
 
 
 def delete_channel(channel_id) -> Dict:
-    response = requests.delete(f'https://discordapp.com/api/channels/{channel_id}',
+    response = requests.delete(f'{API_BASE}/channels/{channel_id}',
                                headers=HEADERS
                                )
     response.raise_for_status()
     return response.json()
 
 
-def get_all_roles() -> List:
-    '''Get all roles on the server.'''
-    response = requests.get(
-        f'https://discordapp.com/api/guilds/{RCOS_SERVER_ID}/roles', headers=HEADERS)
-    response.raise_for_status()
-    return response.json()
-
-
-def add_role(name: str, hoist=False) -> Dict:
-    '''Add a new role to the server.'''
-    response = requests.post(
-        f'https://discordapp.com/api/guilds/{RCOS_SERVER_ID}/roles', json={'name': name, 'hoist': hoist}, headers=HEADERS)
-    response.raise_for_status()
-    return response.json()
-
-
-def find_role(name) -> Optional[Dict]:
-    '''Find a role and return it if it exists. Otherwise returns None.'''
-    for role in all_roles:
-        if role['name'] == name:
-            return role
-    return None
-
-
-def add_role_if_not_exists(name: str, hoist=False) -> Dict:
-    '''Add a new role to the server if it doesn't exist. Returns the created or existing role.'''
-    role = find_role(name)
-    if role == None:
-        role = add_role(name, hoist=hoist)
-        all_roles.append(role)
-
-    return role
-
-
 all_channels = get_all_channels()
-all_roles = get_all_roles()
