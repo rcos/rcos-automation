@@ -1,5 +1,6 @@
-from .constants import RCOS_SERVER_ID, VIEW_CHANNELS, CATEGORY, VOICE_CHANNEL, DISCORD_PM_ROLE_ID, MANAGE_MESSAGES, TEXT_CHANNEL
-from .api import add_channel_if_not_exists, add_role_if_not_exists
+from rcosautomation.discord.constants import RCOS_SERVER_ID, VIEW_CHANNELS, CATEGORY, VOICE_CHANNEL, DISCORD_PM_ROLE_ID, MANAGE_MESSAGES, TEXT_CHANNEL
+from rcosautomation.discord.channels import add_channel_if_not_exists
+from rcosautomation.discord.roles import add_role_if_not_exists
 from typing import List, Dict, Optional
 from csv import DictReader
 import requests

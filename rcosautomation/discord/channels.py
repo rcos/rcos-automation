@@ -22,6 +22,25 @@ def get_all_channels() -> List:
     return response.json()
 
 
+def get_channel(channel_id: str):
+    response = requests.get(
+        f'https://discordapp.com/api/channels/{channel_id}', headers=HEADERS)
+    response.raise_for_status()
+    return response.json()
+
+
+def get_category_children(category_id: str):
+    # Get all children
+    response = requests.get(
+        f'https://discordapp.com/api/guilds/{RCOS_SERVER_ID}/channels', headers=HEADERS)
+    response.raise_for_status()
+    channels = response.json()
+    # Filter to find children
+    children = filter(
+        lambda channel: channel['parent_id'] == category_id, channels)
+    return children
+
+
 def add_channel(name: str, channel_type: int = TEXT_CHANNEL, topic: str = None, parent_id=None, perms=None) -> Dict:
     '''Add a channel or category to the server.'''
     response = requests.post(f'{API_BASE}/guilds/{RCOS_SERVER_ID}/channels',

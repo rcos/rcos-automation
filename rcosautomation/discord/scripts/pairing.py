@@ -1,8 +1,8 @@
 # from .constants import *
-from .create_channels import add_channel_if_not_exists
+from rcosautomation.discord.constants import MATTERMOST_USERNAME, MATTERMOST_PASSWORD
+from rcosautomation.discord.channels import add_channel_if_not_exists
 import requests
 
-from .constants import MATTERMOST_USERNAME, MATTERMOST_PASSWORD
 
 from mattermostdriver import Driver
 

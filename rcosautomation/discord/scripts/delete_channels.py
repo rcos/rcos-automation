@@ -1,40 +1,6 @@
-from .constants import *
+from rcosautomation.discord.constants import CATEGORY
+from rcosautomation.discord.channels import get_channel, get_category_children, delete_channel
 import requests
-
-
-def get_channel(channel_id: str):
-    response = requests.get(
-        f'https://discordapp.com/api/channels/{channel_id}', headers=HEADERS)
-    response.raise_for_status()
-    return response.json()
-
-
-def get_category_children(category_id: str):
-    # Get all children
-    response = requests.get(
-        f'https://discordapp.com/api/guilds/{RCOS_SERVER_ID}/channels', headers=HEADERS)
-    response.raise_for_status()
-    channels = response.json()
-    # Filter to find children
-    children = filter(
-        lambda channel: channel['parent_id'] == category_id, channels)
-    return children
-
-
-def delete_channel(channel_id: str):
-    # Check if this channel or its parent is protected
-    if channel_id in PROTECTED_CHANNEL_IDS:
-        raise Exception('Cannot delete protected channel')
-
-    channel = get_channel(channel_id)
-
-    if channel['parent_id'] in PROTECTED_CHANNEL_IDS:
-        raise Exception('Cannot delete channel in protected category')
-
-    response = requests.delete(
-        f'https://discordapp.com/api/channels/{channel_id}', headers=HEADERS)
-    response.raise_for_status()
-    return response.json()
 
 
 def run():
