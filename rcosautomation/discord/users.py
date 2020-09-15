@@ -54,8 +54,8 @@ def add_user_to_server(access_token: str, user_id: str, nickname: str):
 def kick_user_from_server(user_id: str):
     '''Given a Discord user's id, kick them from the RCOS server.'''
     response = requests.delete(
-        f'{API_BASE}/guilds/{RCOS_SERVER_ID}/members/{user_id}')
-    # response.raise_for_status()
+        f'{API_BASE}/guilds/{RCOS_SERVER_ID}/members/{user_id}', headers=HEADERS)
+    response.raise_for_status()
     return response
 
 
