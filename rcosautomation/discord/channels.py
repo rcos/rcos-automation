@@ -7,10 +7,11 @@ from .constants import API_BASE, RCOS_SERVER_ID, HEADERS, TEXT_CHANNEL, VOICE_CH
 
 def generate_text_channel_name(name: str) -> str:
     '''Given a name, convert it into what its Discord text channel title would be.'''
-    no_white_space = re.sub(r'\W+', ' ', name)
+    no_white_space = re.sub(r'\W+', ' ', name.replace('.', ''))
     stripped = no_white_space.strip()
     no_nonalphanum = re.sub(r'\s+', '-', stripped)
     lowercased = no_nonalphanum.lower()
+    print('\t\t\t' + lowercased)
     return lowercased
 
 
@@ -57,18 +58,23 @@ def add_channel(name: str, channel_type: int = TEXT_CHANNEL, topic: str = None, 
     return response.json()
 
 
-def find_channel(name: str, channel_type: int, parent_id=None) -> Optional[Dict]:
+def find_channel(name: str, channel_type: int, parent_id=None, ignore_parent=False) -> Optional[Dict]:
     '''Find and return a channel with the given criteria or return None'''
     if channel_type == TEXT_CHANNEL:
         name = generate_text_channel_name(name)
+        print(name)
+
     for channel in all_channels:
-        if channel['type'] == channel_type and channel['name'] == name and channel['parent_id'] == parent_id:
-            return channel
+        if channel['type'] == channel_type and channel['name'] == name:
+            if ignore_parent:
+                return channel
+            elif channel['parent_id'] == parent_id:
+                return channel
     return None
 
 
 def add_channel_if_not_exists(name: str, channel_type: int = TEXT_CHANNEL, topic: str = None, parent_id=None, perms=None) -> Dict:
-    '''Add a channel if it does not already exist.'''
+    '''Add a channel if it does not already exist. Returns either found channel or newly created one.'''
     # See if channel exists
     channel = find_channel(
         name, channel_type=channel_type, parent_id=parent_id)
@@ -83,6 +89,13 @@ def add_channel_if_not_exists(name: str, channel_type: int = TEXT_CHANNEL, topic
         print(
             f'{CHANNEL_TYPES[channel["type"]]} "{channel["name"]}" already exists')
     return channel
+
+
+def edit_channel(channel_id: str, updates: Dict):
+    response = requests.patch(
+        f'{API_BASE}/channels/{channel_id}', json=updates, headers=HEADERS)
+    response.raise_for_status()
+    return response.json()
 
 
 def delete_channel(channel_id) -> Dict:
