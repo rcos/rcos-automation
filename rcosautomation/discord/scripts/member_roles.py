@@ -24,7 +24,8 @@ def run():
         for project in csv_reader:
             project_leads_to_project_name[project['Project Lead (RCS ID)']
                                           ] = project['Project Name']
-    # print(project_leads_to_project_name)
+            small_groups[project['Project Name']] = project['Small Group #']
+    print(small_groups)
 
     # First Name,Last Name,User ID,Team ID,Project,Project Lead,Team Registration Section,Team Rotating Section,Mentor
     with open('teams.csv', 'r') as file:
@@ -36,22 +37,40 @@ def run():
                       team_member['Project Lead'], 'for', rcs_id)
                 continue
             project = project_leads_to_project_name[team_member['Project Lead']]
-            print(rcs_id, 'is in', project)
 
             project_role = find_role(project)
             if project_role == None:
                 print('Can\'t find role for project', project)
+                continue
 
             # Get Discord user id
             user = db.users.find_one({'rcs_id': rcs_id})
-            try:
-                print(user['discord']['user_id'])
-                add_role_to_member(
-                    user['discord']['user_id'], project_role['id'])
-                print(f'Added project {project} role to {rcs_id} on Discord')
-            except Exception as e:
+            if user == None:
+                print(f'Can\'t find user {rcs_id}')
+                continue
+
+            if 'discord' not in user or 'user_id' not in user['discord']:
+                print(f'{rcs_id} did not connect Discord')
+                continue
+
+            small_group_role = find_role(
+                'Small Group ' + str(small_groups[project]))
+            if small_group_role == None:
                 print(
-                    f'Failed to give project role {project} to {rcs_id}: {e}')
+                    f'Can\'t find small group role for Small Group {small_groups[project]}')
+            else:
+                add_role_to_member(
+                    user['discord']['user_id'], small_group_role['id'])
+                print(f'Added small group role to {rcs_id}')
+
+            # try:
+            #     print(user['discord']['user_id'])
+            #     add_role_to_member(
+            #         user['discord']['user_id'], project_role['id'])
+            #     print(f'Added project {project} role to {rcs_id} on Discord')
+            # except Exception as e:
+            #     print(
+            #         f'Failed to give project role {project} to {rcs_id}: {e}')
 
             sleep(2)
 # Associate project names with their leaders
