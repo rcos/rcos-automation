@@ -11,7 +11,6 @@ def generate_text_channel_name(name: str) -> str:
     stripped = no_white_space.strip()
     no_nonalphanum = re.sub(r'\s+', '-', stripped)
     lowercased = no_nonalphanum.lower()
-    print('\t\t\t' + lowercased)
     return lowercased
 
 
@@ -62,7 +61,6 @@ def find_channel(name: str, channel_type: int, parent_id=None, ignore_parent=Fal
     '''Find and return a channel with the given criteria or return None'''
     if channel_type == TEXT_CHANNEL:
         name = generate_text_channel_name(name)
-        print(name)
 
     for channel in all_channels:
         if channel['type'] == channel_type and channel['name'] == name:

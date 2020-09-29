@@ -71,15 +71,35 @@ def run():
                 }
             ]
 
-            # existing_project_text_channel = find_channel(
-            #     project['Project Name'], channel_type=TEXT_CHANNEL, ignore_parent=True)
-            # if existing_project_text_channel == None:
-            #     project_text_channel = add_channel_if_not_exists(
-            #         project['Project Name'], channel_type=TEXT_CHANNEL, topic=f'🗨️ Discussion channel for {project["Project Name"]}', parent_id=small_group_category['id'], perms=project_perms)
-            # else:
-            #     # Move channel to category
-            #     edit_channel(existing_project_text_channel['id'], {
-            #                  'parent_id': small_group_category['id'], 'position': 2, 'topic': f'🗨️ Discussion channel for {project["Project Name"]} led by {project["Project Lead (RCS ID)"]}', 'permission_overwrites': project_perms})
+            print(
+                f'Looking for text channel for project {project["Project Name"]}')
+            project_text_channel = find_channel(
+                project['Project Name'], channel_type=TEXT_CHANNEL, ignore_parent=True)
+            if project_text_channel == None:
+                print('Not found! Creating now...')
+                project_text_channel = add_channel_if_not_exists(
+                    project['Project Name'], channel_type=TEXT_CHANNEL, topic=f'🗨️ Discussion channel for {project["Project Name"]}', parent_id=small_group_category['id'], perms=project_perms)
+            else:
+                print('Found! Moving to small group category and applying perms')
+                # Move channel to category
+                edit_channel(project_text_channel['id'], {
+                             'parent_id': small_group_category['id'], 'position': 2, 'topic': f'🗨️ Discussion channel for {project["Project Name"]} led by {project["Project Lead (RCS ID)"]}', 'permission_overwrites': project_perms})
+
+            print(
+                f'Looking for voice channel for project {project["Project Name"]}')
+            project_voice_channel = find_channel(
+                project['Project Name'], channel_type=VOICE_CHANNEL, ignore_parent=True)
+            if project_voice_channel == None:
+                print('NOT FOUND! Creating now...')
+                project_voice_channel = add_channel_if_not_exists(
+                    project['Project Name'], channel_type=VOICE_CHANNEL, parent_id=small_group_category['id'], perms=project_perms)
+            else:
+                print('Found! Moving to small group category and applying perms')
+                # Move channel to category
+                edit_channel(project_voice_channel['id'], {
+                             'parent_id': small_group_category['id'], 'permission_overwrites': project_perms})
+
+            input('Press ENTER to continue...')
 
             # project_voice_channel = add_channel_if_not_exists(
             #     project['Project Name'], channel_type=VOICE_CHANNEL, parent_id=small_group_category['id'], perms=project_perms)
